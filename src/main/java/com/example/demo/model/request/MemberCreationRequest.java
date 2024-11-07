@@ -1,5 +1,7 @@
 package com.example.demo.model.request;
 
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -17,8 +19,8 @@ public class MemberCreationRequest {
     @NotBlank(message = "Last name is required.")
     private String lastName;
 
-//    @NotNull(message = "Id is required.")
-//    private Long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @NotBlank(message = "Username is required.")
     private String username;

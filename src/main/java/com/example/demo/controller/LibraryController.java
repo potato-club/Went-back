@@ -15,6 +15,7 @@ package com.example.demo.controller;
 
 import com.example.demo.model.Author;
 import com.example.demo.model.Book;
+import com.example.demo.model.CustomUserDetails;
 import com.example.demo.model.Member;
 import com.example.demo.model.request.*;
 import com.example.demo.service.LibraryService;
@@ -24,6 +25,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -48,7 +50,18 @@ public class LibraryController {
     @PostMapping("/login")
     public ResponseEntity<String> loginMember (@RequestBody @Valid LoginRequest loginRequest) {
         String token = libraryService.login(loginRequest);
-        return ResponseEntity.ok("Bearer " + token);
+        return ResponseEntity.ok()
+                .header("Authorization","Bearer " + token)
+                .body("Login Success♪♬");
+    }
+
+    // 도서 대출
+    @PostMapping("/book/lend")
+    public ResponseEntity<List<String>> lendABook (@RequestBody BookLendRequest bookLendRequest, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        String username = customUserDetails.getUsername();
+        List<String> response = libraryService.lendABook(username, bookLendRequest);
+
+        return ResponseEntity.ok(response);
     }
     
     // 관리자
@@ -133,10 +146,5 @@ public class LibraryController {
     public ResponseEntity<Member> updateMember (@RequestBody MemberCreationRequest request, @PathVariable("memberId") Long memberId) {
         return ResponseEntity.ok(libraryService.updateMember(memberId, request));
     }
-    
-    // 도서 대출
-    @PostMapping("/book/lend")
-    public ResponseEntity<List<String>> lendABook (@RequestBody BookLendRequest bookLendRequest) {
-        return ResponseEntity.ok(libraryService.lendABook(bookLendRequest));
-    }
+
 }

@@ -40,6 +40,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
     // Request Header에서 토큰 추출
     private String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization"); // Authorization 헤더에 Bearer {token} 형태로 JWT 포함
+        // return request.getHeader("Authorization");
 
         if(StringUtils.hasText(bearerToken) && bearerToken.startsWith(JwtConstant.GRANT_TYPE)) {
             return bearerToken.substring(7); // "Bearer " 제거하고 토큰 반환

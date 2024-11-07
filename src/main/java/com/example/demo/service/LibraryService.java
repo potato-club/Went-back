@@ -40,9 +40,8 @@ public class LibraryService {
     private final JwtGenerator jwtGenerator;
 
     // 회원 가입
-    @Transactional
     public Member createMember (MemberCreationRequest memberCreationRequest) {
-        if (userRepository.existsById(Long.valueOf(memberCreationRequest.getUsername()))) {
+        if (userRepository.existsByUsername(memberCreationRequest.getUsername())) {
             throw new IllegalArgumentException("Username already exists");
         }
 
@@ -77,7 +76,7 @@ public class LibraryService {
     }
 
     public Member updateMember (Long id, MemberCreationRequest request) {
-        Optional<Member> optionalMember = userRepository.findById(id);
+        Optional<Member> optionalMember = userRepository.findById(request.getUsername());
         if (!optionalMember.isPresent()) {
             throw new EntityNotFoundException("Member not present in the database");
         }
@@ -160,7 +159,7 @@ public class LibraryService {
     }
 
     public List<String> lendABook (BookLendRequest request) {
-        Optional<Member> memberForId = userRepository.findById(request.getMemberId());
+        Optional<Member> memberForId = userRepository.findByUsername(request.getMemberId());
         if (!memberForId.isPresent()) {
             throw new EntityNotFoundException("Member not present in the database");
         }

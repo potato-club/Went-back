@@ -61,7 +61,6 @@ public class SecurityConfig {
         // session 설정
         http.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-
         return http.build();
     }
 }
