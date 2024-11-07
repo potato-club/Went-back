@@ -40,7 +40,7 @@ public class LibraryController {
     private final LibraryService libraryService;
 
     // 회원 가입
-    @PostMapping("/join")
+    @PostMapping("/signup")
     public ResponseEntity<Member> createMember (@RequestBody @Valid MemberCreationRequest memberCreationRequest) {
         Member newMember = libraryService.createMember(memberCreationRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(newMember);
@@ -59,7 +59,7 @@ public class LibraryController {
     @PostMapping("/book/lend")
     public ResponseEntity<List<String>> lendABook (@RequestBody BookLendRequest bookLendRequest, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
         String username = customUserDetails.getUsername();
-        List<String> response = libraryService.lendABook(username, bookLendRequest);
+        List<String> response = libraryService.lendABook(bookLendRequest);
 
         return ResponseEntity.ok(response);
     }
