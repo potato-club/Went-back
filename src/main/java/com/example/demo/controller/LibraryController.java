@@ -39,28 +39,11 @@ import org.springframework.data.domain.Pageable;
 public class LibraryController {
     private final LibraryService libraryService;
 
-    // 회원 가입
-    @PostMapping("/signup")
-    public ResponseEntity<Member> createMember (@RequestBody @Valid MemberCreationRequest memberCreationRequest) {
-        Member newMember = libraryService.createMember(memberCreationRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newMember);
-    }
-    
-    // 로그인
-    @PostMapping("/login")
-    public ResponseEntity<String> loginMember (@RequestBody @Valid LoginRequest loginRequest) {
-        String token = libraryService.login(loginRequest);
-        return ResponseEntity.ok()
-                .header("Authorization","Bearer " + token)
-                .body("Login Success♪♬");
-    }
-
     // 도서 대출
     @PostMapping("/book/lend")
     public ResponseEntity<List<String>> lendABook (@RequestBody BookLendRequest bookLendRequest, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
         String username = customUserDetails.getUsername();
-        List<String> response = libraryService.lendABook(bookLendRequest);
-
+        List<String> response = libraryService.lendABook(bookLendRequest, username);
         return ResponseEntity.ok(response);
     }
     

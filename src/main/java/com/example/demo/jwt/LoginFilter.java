@@ -1,14 +1,15 @@
 /*
     사용자 인증 시, 요청 처리
+    Spring Security 필터 체인에 추가되어 로그인 요청을 가로챔!
  */
 
 package com.example.demo.jwt;
 
-import com.example.demo.model.CustomUserDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -17,11 +18,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import java.io.IOException;
 
+@Slf4j
 @RequiredArgsConstructor
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final AuthenticationManager authenticationManager;
-    private final JwtGenerator jwtGenerator;
-    
+    private final JwtProvider jwtProvider;
+
     // 로그인 시도 메소드
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
@@ -35,21 +37,20 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         return authenticationManager.authenticate(authToken);
     }
-    
-    // 로그인 성공 실행 메소드 (여기서 JWT 발급하면 됨)
+
+    // 로그인 성공 실행 메소드
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication)
             throws IOException {
-        String username = authentication.getName();
+        // authentication => 인증된 사용자 정보가 포함
+        JwtToken jwtToken = jwtProvider.issueToken(authentication);
 
-        // Authentication 객체에서 현재 인증된 사용자의 정보를 가져옴
-        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
-        Long userId = customUserDetails.getId();
+        log.info("Access Token: " + jwtToken.getAccessToken());
+        log.info("Refresh Token: " + jwtToken.getRefreshToken());
 
-        JwtToken jwtToken = jwtGenerator.generateToken(userId);
 
-        response.addHeader("Authorization", "Bearer " + jwtToken.getAccessToken());
-        response.getWriter().write("Welcome, " + username);
+        response.setHeader("Authorization", "Bearer " + jwtToken.getAccessToken());
+        response.setHeader("RefreshToken", jwtToken.getRefreshToken());
     }
 
     // 로그인 실패

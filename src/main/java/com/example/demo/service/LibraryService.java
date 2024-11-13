@@ -3,11 +3,11 @@
 
 package com.example.demo.service;
 
+import com.example.demo.jwt.JwtToken;
 import com.example.demo.model.*;
 import com.example.demo.model.request.*;
 import com.example.demo.repository.*;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 
@@ -15,9 +15,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import com.example.demo.jwt.JwtGenerator;
+import com.example.demo.jwt.JwtProvider;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -36,53 +38,16 @@ public class LibraryService {
     private final LendRepository lendRepository;
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtGenerator jwtGenerator;
 
-    // 회원 가입
-    public Member createMember (MemberCreationRequest memberCreationRequest) {
-        if (userRepository.existsByUsername(memberCreationRequest.getUsername())) {
-            throw new IllegalArgumentException("Username already exists");
-        }
-
-        if (memberCreationRequest.getPassword().length() < 5) {
-            throw new IllegalArgumentException("Password must be at least 5 characters long");
-        }
-
-        Member member = new Member();
-        BeanUtils.copyProperties(memberCreationRequest, member);
-        
-        // 비밀번호 암호화하여 저장
-        String encodedPassword = passwordEncoder.encode(memberCreationRequest.getPassword());
-        member.setPassword(encodedPassword);
-        member.setStatus(MemberStatus.ACTIVE);
-
-        return userRepository.save(member);
-    }
-    
-    // 로그인
-    public String login(LoginRequest loginRequest) {
-        // 사용자 정보 검증
-        Member member = userRepository.findByUsername(loginRequest.getUsername())
-                .orElseThrow(() -> new IllegalArgumentException("The username does not exist."));
-
-        // 비밀번호 확인
-        if (!passwordEncoder.matches(loginRequest.getPassword(), member.getPassword())) {
-            throw new IllegalArgumentException("The password is incorrect.");
-        }
-
-        // JWT 생성 및 반환
-        return jwtGenerator.generateToken(member.getId()).getAccessToken();
-    }
-
-    public Member updateMember (Long id, MemberCreationRequest request) {
-        Optional<Member> optionalMember = userRepository.findById(request.getUsername());
+    // 회원 정보 수정 <- 여기서는 빌더보다 setter 사용이 더 나을까??? 그럴 거 같음
+    public Member updateMember (Long id, MemberCreationRequest memberCreationRequest) {
+        Optional<Member> optionalMember = userRepository.findById(memberCreationRequest.getUsername());
         if (!optionalMember.isPresent()) {
-            throw new EntityNotFoundException("Member not present in the database");
+            throw new EntityNotFoundException("No member found in the database");
         }
+
         Member member = optionalMember.get();
-        member.setLastName(request.getLastName());
-        member.setFirstName(request.getFirstName());
+        member.changeName(memberCreationRequest.getFirstName(), memberCreationRequest.getLastName());
         return userRepository.save(member);
     }
 
@@ -141,7 +106,7 @@ public class LibraryService {
             throw new EntityNotFoundException("Author Not Found");
         }
         Book bookToCreate = new Book();
-        BeanUtils.copyProperties(book, bookToCreate); // BookCreationRequest 객체의 속성들을 Book 객체로 복사
+        // BeanUtils.copyProperties(book, bookToCreate); // BookCreationRequest 객체의 속성들을 Book 객체로 복사
         bookToCreate.setAuthor(author.get()); // 조회한 저자를 새로 생성할 책의 저자 필드에 설정, AuthorRepository에서 조회한 Author 객체 반환
         return bookRepository.save(bookToCreate); // 책 DB에 저장, 저장된 책 객체 반환
     }
@@ -150,21 +115,18 @@ public class LibraryService {
         bookRepository.deleteById(id);
     }
 
-
-
     public Author createAuthor (AuthorCreationRequest request) {
         Author author = new Author();
         BeanUtils.copyProperties(request, author);
         return authorRepository.save(author);
     }
+    
+    // 도서 대출
+    public List<String> lendABook (BookLendRequest request, String username) {
+        // 사용자 정보 조회
+        Member member = userRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("Member not present in the database"));
 
-    public List<String> lendABook (BookLendRequest request) {
-        Optional<Member> memberForId = userRepository.findByUsername(request.getMemberId());
-        if (!memberForId.isPresent()) {
-            throw new EntityNotFoundException("Member not present in the database");
-        }
-
-        Member member = memberForId.get();
         if(member.getStatus() != MemberStatus.ACTIVE) {
             throw new RuntimeException("User is not active to proceed a lending");
         }
@@ -172,24 +134,31 @@ public class LibraryService {
         List<String> booksApprovedToBorrow = new ArrayList<>();
 
         request.getBookIds().forEach(bookId -> {
-            // 책이 DB에 존재하는지 확인
-            Optional<Book> bookForId = bookRepository.findById(bookId);
-            if (!bookForId.isPresent()) {
-                throw new EntityNotFoundException("Can't find any book under given ID");
-            }
+            // 책 정보 조회
+            Book book = bookRepository.findById(bookId)
+                    .orElseThrow(() -> new EntityNotFoundException("Can't find any book under given ID"));
 
             // 책이 현재 대출 중인지 확인
-            Optional<Lend> borrowedBook = lendRepository.findByBookAndStatus(bookForId.get(), LendStatus.BORROWED);
+            Optional<Lend> borrowedBook = lendRepository.findByBookAndStatus(book, LendStatus.BORROWED);
             if (!borrowedBook.isPresent()) {
-                booksApprovedToBorrow.add(bookForId.get().getName());
+                booksApprovedToBorrow.add(book.getName());
+
                 Lend lend = new Lend();
-                lend.setMember(memberForId.get());
-                lend.setBook(bookForId.get());
+                lend.setMember(member);
+                lend.setBook(book);
                 lend.setStatus(LendStatus.BORROWED);
                 lend.setStartOn(Instant.now());
                 lend.setDueOn(Instant.now().plus(30, ChronoUnit.DAYS));
+
                 lendRepository.save(lend);
+
+                System.out.println("Book borrowed successfully: " + book.getName());
             }
+
+            else {
+                System.out.println("Book is already borrowed: " + book.getName());
+            }
+
         });
         return booksApprovedToBorrow;
     }

@@ -1,6 +1,7 @@
 package com.example.demo.config;
 
-import com.example.demo.jwt.JwtGenerator;
+import com.example.demo.jwt.JwtAuthenticationFilter;
+import com.example.demo.jwt.JwtProvider;
 import com.example.demo.jwt.LoginFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -19,7 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final AuthenticationConfiguration authenticationConfiguration;
-    private final JwtGenerator jwtGenerator;
+    private final JwtProvider jwtProvider;
 
     @Bean
     public AuthenticationManager authenticationManager() throws Exception {
@@ -47,16 +48,19 @@ public class SecurityConfig {
         // 경로별 인가 작업
         http.authorizeHttpRequests((auth) -> auth
                 // 모든 사용자에게 접근 허용 => 로그인/회원가입
-                .requestMatchers("/api/library/login", "/", "/api/library/join").permitAll()
+                .requestMatchers("/api/library/login", "/", "/api/library/signup").permitAll()
 
                 // ROLE_ADMIN 권한 있는 사용자만 접근 허용
                 .requestMatchers("/admin").hasRole("ADMIN")
 
                 // 나머지 모든 요청 인증된 사용자만 접근 허용
-                .anyRequest().authenticated());
+                .anyRequest().authenticated()); // 테스트 할 때는 그냥 permitAll() 해두기 !!
 
         // 필터 추가 => 사용자 정의 필터로 로그인 과정 처리 (LoginFilter를 UsernamePasswordAuthenticationFilter 위치에서 동작하도록 설정)
-        http.addFilterAt(new LoginFilter(authenticationManager(), jwtGenerator), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterAt(new LoginFilter(authenticationManager(), jwtProvider), UsernamePasswordAuthenticationFilter.class);
+
+        // JWT 인증 필터를 UsernamePasswordAuthenticationFilter 뒤에 추가
+        http.addFilterAfter(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class);
 
         // session 설정
         http.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
