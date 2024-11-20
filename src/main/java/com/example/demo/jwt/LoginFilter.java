@@ -48,7 +48,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         log.info("Access Token: " + jwtToken.getAccessToken());
         log.info("Refresh Token: " + jwtToken.getRefreshToken());
 
-
         response.setHeader("Authorization", "Bearer " + jwtToken.getAccessToken());
         response.setHeader("RefreshToken", jwtToken.getRefreshToken());
     }

@@ -10,6 +10,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -32,6 +33,11 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return webSecurity -> webSecurity.ignoring()
+                .requestMatchers("/error");
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -47,14 +53,12 @@ public class SecurityConfig {
 
         // 경로별 인가 작업
         http.authorizeHttpRequests((auth) -> auth
-                // 모든 사용자에게 접근 허용 => 로그인/회원가입
-                .requestMatchers("/api/library/login", "/", "/api/library/signup").permitAll()
-
-                // ROLE_ADMIN 권한 있는 사용자만 접근 허용
-                .requestMatchers("/admin").hasRole("ADMIN")
+                .requestMatchers("/api/library/login", "/", "/api/library/signup", "/api/library/admin/signup", "/api/library/admin/login").permitAll()
+                .requestMatchers("/api/library/book", "/api/library/book/{bookId}", "/api/library/author").permitAll() // 도서, 저자 조회
+                .requestMatchers("/api/library/admin/**").hasRole("ADMIN")
 
                 // 나머지 모든 요청 인증된 사용자만 접근 허용
-                .anyRequest().authenticated()); // 테스트 할 때는 그냥 permitAll() 해두기 !!
+                .anyRequest().authenticated());
 
         // 필터 추가 => 사용자 정의 필터로 로그인 과정 처리 (LoginFilter를 UsernamePasswordAuthenticationFilter 위치에서 동작하도록 설정)
         http.addFilterAt(new LoginFilter(authenticationManager(), jwtProvider), UsernamePasswordAuthenticationFilter.class);

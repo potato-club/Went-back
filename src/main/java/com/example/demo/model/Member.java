@@ -14,7 +14,6 @@ import java.util.List;
 @Getter
 @Entity
 @Table(name = "member")
-//@JsonIgnoreProperties({"authorities"})
 public class Member {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,7 +35,9 @@ public class Member {
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Lend> lends;
 
-    public Member() {}
+    public Member() {
+
+    }
 
     @Builder
     public Member (String username, String password, String firstName, String lastName, Role role, MemberStatus status) {

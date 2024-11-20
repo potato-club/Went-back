@@ -9,7 +9,6 @@ import lombok.Getter;
 
 @Data
 @Getter
-// @Setter
 public class MemberCreationRequest {
     @NotBlank(message = "First name is required.")
     private String firstName;
@@ -21,7 +20,7 @@ public class MemberCreationRequest {
     private Long id;
 
     @NotBlank(message = "Username is required.")
-    // 클라이언트 ID
+    // user ID
     private String username;
 
     @NotBlank(message = "Password is required.")

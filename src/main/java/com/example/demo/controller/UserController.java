@@ -1,6 +1,5 @@
 package com.example.demo.controller;
 
-import com.example.demo.jwt.JwtProvider;
 import com.example.demo.jwt.JwtToken;
 import com.example.demo.model.request.LoginRequest;
 import com.example.demo.model.request.MemberCreationRequest;
@@ -12,12 +11,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-// 특정 URL로 요청을 보냈을 때, Controller의 어떤 메서드가 처리할지 매핑, value => 요청받을 URL 설정
 @RequestMapping(value = "/api/library")
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
-    private final JwtProvider jwtProvider;
 
     // 회원 가입
     @PostMapping("/signup")
@@ -44,6 +41,13 @@ public class UserController {
         return ResponseEntity.ok()
                 .header("Authorization","Bearer " + newToken.getAccessToken())
                 .header("RefreshToken", newToken.getRefreshToken())
-                .body("Token Reissued Successfully!");
+                .body("Token Reissued Successfully :D");
+    }
+
+    // 회원 탈퇴
+    @DeleteMapping("/member/{username}")
+    public ResponseEntity<String> deleteMember (@PathVariable("username") String username) {
+        userService.deleteMember(username);
+        return ResponseEntity.ok("The ID deleted successfully.");
     }
 }

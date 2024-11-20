@@ -19,18 +19,11 @@ import com.example.demo.model.CustomUserDetails;
 import com.example.demo.model.Member;
 import com.example.demo.model.request.*;
 import com.example.demo.service.LibraryService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 @RestController
 // 특정 URL로 요청을 보냈을 때, Controller의 어떤 메서드가 처리할지 매핑, value => 요청받을 URL 설정
@@ -46,88 +39,64 @@ public class LibraryController {
         List<String> response = libraryService.lendABook(bookLendRequest, username);
         return ResponseEntity.ok(response);
     }
-    
-    // 관리자
-    @GetMapping("/admin")
-    public ResponseEntity<String> adminAccess() {
-        return ResponseEntity.ok("Hello, Administerator");
-    }
-    
+
     // 도서 조회
     @GetMapping("/book")
     public ResponseEntity readBooks (@RequestParam (value = "isbn", required = false) String isbn) { // isbn 파라미터를 포함할 수도 있고, 아닐 수도 있음
         if (isbn == null) {
-            return ResponseEntity.ok(libraryService.readBooks()); // HTTP 응답 나타냄
+            return ResponseEntity.ok(libraryService.readBooks());
         }
         return ResponseEntity.ok(libraryService.readBook(isbn));
     }
 
+    // 도서 조회 (ID)
     @GetMapping("/book/{bookId}") // (엔드포인트{경로 변수}) 엔드포인트 == URL의 경로 부분
     public ResponseEntity<Book> readBook (@PathVariable("bookId") Long bookId) {
         return ResponseEntity.ok(libraryService.readBook(bookId));
     }
 
-    // 도서 조회
-    @GetMapping("/book/page")
-    public ResponseEntity<Page<Book>> readBooks
-    // PageableDefault => page, size, sort, direction 설정
-    (@RequestParam (value = "isbn", required = false) String isbn, @PageableDefault(size = 6) Pageable pageable) {
-        if (isbn == null) {
-            return ResponseEntity.ok(libraryService.readBooks(pageable));
-        }
-        return ResponseEntity.ok(libraryService.readBook(isbn, pageable));
-    }
-
-    // 도서 조회
-    @GetMapping("/book/scroll")
-    public ResponseEntity<Slice<Book>> readBooksAscending
-    (@RequestParam(value = "cursor", required = false) Long cursor, @RequestParam(value = "size", defaultValue = "6") int size) {
-        Slice<Book> books = libraryService.readBooksAscending(cursor, size);
-        return ResponseEntity.ok(books);
-    }
-
-    // 도서 생성
-    @PostMapping("/book")
-    // JSON 형식의 데이터를 받아 BookCreationRequest request로 파라미터 할당
-    public ResponseEntity<Book> createBook (@RequestBody BookCreationRequest request) {
-        return ResponseEntity.ok(libraryService.createBook(request));
-    }
-    
-    // 도서 부분 수정
-    @PatchMapping("/book/{bookId}")
-    public ResponseEntity<Book> updateBook (@PathVariable("bookId") Long bookId, @RequestBody BookCreationRequest request) {
-        return ResponseEntity.ok(libraryService.updateBook(bookId, request));
-    }
-    
-    // 저자 생성
-    @PostMapping("/author")
-    public ResponseEntity<Author> createAuthor (@RequestBody AuthorCreationRequest request) {
-        return ResponseEntity.ok(libraryService.createAuthor(request));
-    }
-    
     // 저자 조회
     @GetMapping("/author")
     public ResponseEntity<List<Author>> readAuthors() {
         return ResponseEntity.ok(libraryService.readAuthors());
     }
 
-    // 도서 ID에 해당하는 도서 삭제
-    @DeleteMapping("/book/{bookId}")
-    public ResponseEntity<Void> deleteBook (@PathVariable("bookId") Long bookId) {
-        libraryService.deleteBook(bookId);
-        return ResponseEntity.ok().build();
+    // 도서 생성
+    @PostMapping("/admin/book")
+    // JSON 형식의 데이터를 받아 BookCreationRequest request로 파라미터 할당
+    public ResponseEntity<Book> createBook (@RequestBody BookCreationRequest request) {
+        return ResponseEntity.ok(libraryService.createBook(request));
     }
-    
+
+    // 저자 생성
+    @PostMapping("/admin/author")
+    public ResponseEntity<Author> createAuthor (@RequestBody AuthorCreationRequest request) {
+        return ResponseEntity.ok(libraryService.createAuthor(request));
+    }
+
+    // 도서 삭제
+    @DeleteMapping("/admin/book/{bookId}")
+    public ResponseEntity<String> deleteBook (@PathVariable("bookId") Long bookId) {
+        libraryService.deleteBook(bookId);
+        return ResponseEntity.ok("The book deleted successfully.");
+    }
+
     // 회원 조회
-    @GetMapping("/member")
+    @GetMapping("/admin/member")
     public ResponseEntity<List<Member>> readMembers() {
         return ResponseEntity.ok(libraryService.readMembers());
     }
-    
+
+    // 도서 부분 수정
+    @PatchMapping("/admin/book/{bookId}")
+    public ResponseEntity<Book> updateBook (@PathVariable("bookId") Long bookId, @RequestBody BookCreationRequest request) {
+        return ResponseEntity.ok(libraryService.updateBook(bookId, request));
+    }
+
     // 회원 부분 수정
-    @PatchMapping("/member/{memberId}")
+    @PatchMapping("/admin/member/{memberId}")
     public ResponseEntity<Member> updateMember (@RequestBody MemberCreationRequest request, @PathVariable("memberId") Long memberId) {
-        return ResponseEntity.ok(libraryService.updateMember(memberId, request));
+        return ResponseEntity.ok(libraryService.updateMember(request));
     }
 
 }

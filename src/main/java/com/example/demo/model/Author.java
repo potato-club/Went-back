@@ -7,14 +7,16 @@ package com.example.demo.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
+
 import java.util.List;
 
 @Getter
-@Setter
 @Entity // 클래스가 JPA 엔티티(DB와 연동되는 자바 객체)임을 나타냄 (데이터베이스 테이블과 연결될 클래스 설정)
 @Table(name = "author") // 엔티티가 매핑될 데이터베이스 테이블의 이름을 지정
+@NoArgsConstructor
 public class Author {
     @Id // 엔티티 클래스의 필드를 데이터베이스 테이블의 기본 키로 지정
     // 기본 키 == 객체의 인스턴스를 구분하기 위한 키 값 => 테이블의 각 행 식별에 사용
@@ -22,6 +24,13 @@ public class Author {
     private Long id;
     private String firstName;
     private String lastName;
+
+    @Builder
+    public Author (Long id, String firstName, String lastName) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
 
     @JsonBackReference // 필드를 JSON 직렬화에서 제외 => 무한 루프 방지
     // 엔티티 자체를 JSON으로 직렬화하여 반환할 경우 순환 참조 발생
@@ -31,13 +40,4 @@ public class Author {
     @OneToMany(mappedBy = "author", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     // Author 객체가 여러 개의 Book 객체와 연관 O
     private List<Book> books; // 제네릭 => 객체에 타입을 지정 => 값을 가져올 때 형변환 필요 X
-
-    // @Getter, @Setter 사용하지 않는 경우
-    /*
-    public Long getId() {
-        return id;
-    }
-    public void setId(Long id) {
-        this.id = id;
-    } */
 }

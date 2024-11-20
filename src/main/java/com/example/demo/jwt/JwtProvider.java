@@ -5,6 +5,10 @@
 
 package com.example.demo.jwt;
 
+import com.example.demo.error.BadRequestException;
+import com.example.demo.error.ErrorCode;
+import com.example.demo.error.TokenCreationException;
+import com.example.demo.error.UnAuthorizedException;
 import com.example.demo.model.CustomUserDetails;
 import com.example.demo.service.CustomUserDetailsService;
 import io.jsonwebtoken.*;
@@ -41,28 +45,35 @@ public class JwtProvider {
 
     // AT 생성
     public String createAccessToken(String username, String authorities) {
-        // now 변수에 현재 시간을 밀리초로 저장
-        long now = (new Date()). getTime();
-        Date accessTokenExpiration = new Date(now + ACCESS_TOKEN_EXPIRE_TIME);
+        try {
+            long now = (new Date()).getTime();
+            Date accessTokenExpiration = new Date(now + ACCESS_TOKEN_EXPIRE_TIME);
 
-        return Jwts.builder()
-                .setSubject(username) // 토큰 해석할 때 subject 값을 통해 어떤 사용자의 토큰인지 식별
-                .claim("authorities", authorities)
-                .setExpiration(accessTokenExpiration)
-                .signWith(key, SignatureAlgorithm.HS256) // key와 HS256 알고리즘을 사용하여 signature 생성
-                .compact(); // 빌더가 설정한 값을 기반으로 JWT 문자열을 생성
+            return Jwts.builder()
+                    .setSubject(username) // 토큰 해석할 때 subject 값을 통해 어떤 사용자의 토큰인지 식별
+                    .claim("authorities", authorities)
+                    .setExpiration(accessTokenExpiration)
+                    .signWith(key, SignatureAlgorithm.HS256) // key와 HS256 알고리즘을 사용하여 signature 생성
+                    .compact(); // 빌더가 설정한 값을 기반으로 JWT 문자열을 생성
+        } catch (JwtException e) {
+            throw new TokenCreationException("Access Token이 생성되지 않았습니다.", ErrorCode.ACCESS_TOKEN_NOT_CREATED);
+        }
     }
 
     // RT 생성
     public String createRefreshToken(String username, String authorities) {
-        long now = (new Date()). getTime();
-        Date refreshTokenExpiration = new Date(now + REFRESH_TOKEN_EXPIRE_TIME);
+        try {
+            long now = (new Date()).getTime();
+            Date refreshTokenExpiration = new Date(now + REFRESH_TOKEN_EXPIRE_TIME);
 
-        return Jwts.builder()
-                .setSubject(username)
-                .setExpiration(refreshTokenExpiration)
-                .signWith(key, SignatureAlgorithm.HS256)
-                .compact();
+            return Jwts.builder()
+                    .setSubject(username)
+                    .setExpiration(refreshTokenExpiration)
+                    .signWith(key, SignatureAlgorithm.HS256)
+                    .compact();
+        } catch (JwtException e) {
+            throw new TokenCreationException("Refresh Token이 생성되지 않았습니다.", ErrorCode.REFRESH_TOKEN_NOT_CREATED);
+        }
     }
 
     // 토큰 발급
@@ -107,8 +118,8 @@ public class JwtProvider {
                 .accessToken(newAccessToken)
                 .refreshToken(newRefreshToken)
                 .build();
+        // 예외 처리?
     }
-
 
     // 토큰 정보 검증
     public boolean validateToken(String refreshtoken) {
@@ -117,18 +128,23 @@ public class JwtProvider {
                     .setSigningKey(key)
                     .build()
                     .parseClaimsJws(refreshtoken);
-            return true; 
-        } catch (SecurityException | MalformedJwtException e) {
-            log.info("Invalid JWT Token", e); // 서명 오류 or 형식 오류
+            return true;
+            // 여기 수정!!!
+        } catch (IllegalArgumentException | MalformedJwtException e) {
+            log.info("형식에 맞지 않는 토큰입니다.", e);
+            throw new BadRequestException("잘못된 토큰 형식입니다.", ErrorCode.UNSUPPORTED_TOKEN); // 400
+        } catch (SecurityException e) {
+            log.info("잘못된 토큰입니다.", e);
+            throw new UnAuthorizedException("잘못된 JWT 시그니처입니다.", ErrorCode.INVALID_SIGNATURE); // 401
         } catch (ExpiredJwtException e) {
-            log.info("Expired JWT Token", e); // 만료
+            log.info("만료된 토큰입니다.", e);
+            // 얘는 왜 결과 반환 바디에 안 뜨지
+            throw new UnAuthorizedException("인증이 만료된 토큰입니다.", ErrorCode.EXPIRED_TOKEN); // 401
         } catch (UnsupportedJwtException e) {
-            log.info("Unsupported JWT Token", e); // 잘못된 형식
-        } catch (IllegalArgumentException e) {
-            log.info("JWT claims string is empty", e); // 클레임 비어 있음
+            log.info("지원되지 않는 JWT 형식입니다.", e);
+            throw new UnAuthorizedException("지원되지 않는 토큰입니다.", ErrorCode.UNSUPPORTED_TOKEN); // 401
         }
 
-        return false;
     }
 
     // Authentication 객체 생성
@@ -150,6 +166,5 @@ public class JwtProvider {
 
         return new UsernamePasswordAuthenticationToken(userDetails, token, authorities);
     }
-
 
 }
