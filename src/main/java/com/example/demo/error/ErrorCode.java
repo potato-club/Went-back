@@ -23,7 +23,8 @@ public enum ErrorCode {
     BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, 4041, "Book Not Found"),
     AUTHOR_NOT_FOUND(HttpStatus.NOT_FOUND, 4042, "Author Not Found"),
 
-    USER_ALREADY_EXISTS(HttpStatus.CONFLICT, 4090, "Username already exists"),
+    USER_ALREADY_EXISTS(HttpStatus.CONFLICT, 4091, "Username already exists"),
+    BOOK_ALREADY_BORROWED(HttpStatus.CONFLICT, 4092, "Book already borrowed"),
 
     ACCESS_TOKEN_NOT_CREATED(HttpStatus.INTERNAL_SERVER_ERROR, 5001, "Acccess Token Not Created"),
     REFRESH_TOKEN_NOT_CREATED(HttpStatus.INTERNAL_SERVER_ERROR, 5002, "Refresh Token Not Created");

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class ErrorExceptionHandler {
     @ExceptionHandler(BusinessException.class) // CustomException 발생했을 때 호출되는 메서드
-    protected ResponseEntity<ErrorResponseDTO> handleCustomException(BusinessException businessException) {
-        return ErrorResponseDTO.toResponseEntity(businessException.getErrorCode());
+    protected ResponseEntity<ErrorResponseDto> handleCustomException(BusinessException businessException) {
+        return ErrorResponseDto.toResponseEntity(businessException.getErrorCode());
     }
 }

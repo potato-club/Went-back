@@ -3,6 +3,7 @@
 
 package com.example.demo.service;
 
+import com.example.demo.error.ConflictException;
 import com.example.demo.error.ErrorCode;
 import com.example.demo.error.NotFoundException;
 import com.example.demo.model.*;
@@ -85,10 +86,8 @@ public class LibraryService {
                         .build();
 
                 lendRepository.save(lend);
-
-                System.out.println("Book borrowed successfully: " + book.getName());
             } else {
-                System.out.println("Book is already borrowed: " + book.getName());
+                throw new ConflictException("이미 대출 중인 책입니다.", ErrorCode.BOOK_ALREADY_BORROWED);
             }
         });
         return booksApprovedToBorrow;

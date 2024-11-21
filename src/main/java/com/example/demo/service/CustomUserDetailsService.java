@@ -1,5 +1,7 @@
 package com.example.demo.service;
 
+import com.example.demo.error.ErrorCode;
+import com.example.demo.error.NotFoundException;
 import com.example.demo.model.CustomUserDetails;
 import com.example.demo.model.Member;
 import com.example.demo.repository.UserRepository;
@@ -17,7 +19,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Member user = userRepository.findByUsername(username).orElseThrow(
-                () -> new IllegalArgumentException(username + " User Not Found.")
+                () -> new NotFoundException("User Not Found", ErrorCode.USER_NOT_FOUND)
         );
 
         return new CustomUserDetails(user);

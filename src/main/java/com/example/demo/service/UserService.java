@@ -27,7 +27,7 @@ public class UserService {
         int passwordLength = memberCreationRequest.getPassword().length();
 
         if (userRepository.existsByUsername(memberCreationRequest.getUsername())) {
-            throw new BusinessException("이미 존재하는 ID입니다.", ErrorCode.USER_ALREADY_EXISTS);
+            throw new ConflictException("이미 존재하는 ID입니다.", ErrorCode.USER_ALREADY_EXISTS);
         }
 
         if (passwordLength < 6) {
@@ -47,7 +47,6 @@ public class UserService {
 
         return userRepository.save(member);
     }
-
 
     // 로그인
     public JwtToken login(LoginRequest loginRequest) {

@@ -94,6 +94,7 @@ public class JwtProvider {
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build();
+
     }
 
     // 토큰 재발급
@@ -118,27 +119,25 @@ public class JwtProvider {
                 .accessToken(newAccessToken)
                 .refreshToken(newRefreshToken)
                 .build();
-        // 예외 처리?
     }
 
     // 토큰 정보 검증
-    public boolean validateToken(String refreshtoken) {
+    public boolean validateToken(String refreshToken) {
         try {
             Jwts.parserBuilder()
                     .setSigningKey(key)
                     .build()
-                    .parseClaimsJws(refreshtoken);
+                    .parseClaimsJws(refreshToken);
             return true;
             // 여기 수정!!!
         } catch (IllegalArgumentException | MalformedJwtException e) {
             log.info("형식에 맞지 않는 토큰입니다.", e);
             throw new BadRequestException("잘못된 토큰 형식입니다.", ErrorCode.UNSUPPORTED_TOKEN); // 400
         } catch (SecurityException e) {
-            log.info("잘못된 토큰입니다.", e);
+            log.info("유효하지 않는 JWT 서명입니다.", e);
             throw new UnAuthorizedException("잘못된 JWT 시그니처입니다.", ErrorCode.INVALID_SIGNATURE); // 401
         } catch (ExpiredJwtException e) {
             log.info("만료된 토큰입니다.", e);
-            // 얘는 왜 결과 반환 바디에 안 뜨지
             throw new UnAuthorizedException("인증이 만료된 토큰입니다.", ErrorCode.EXPIRED_TOKEN); // 401
         } catch (UnsupportedJwtException e) {
             log.info("지원되지 않는 JWT 형식입니다.", e);
