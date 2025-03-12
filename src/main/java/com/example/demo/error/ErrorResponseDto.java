@@ -1,5 +1,3 @@
-// 클라이언트에게 반환될 JSON 응답 형식 정의
-
 package com.example.demo.error;
 
 import lombok.Builder;

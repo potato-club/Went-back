@@ -46,7 +46,6 @@ public class AdminService {
         return userRepository.save(member);
     }
 
-    // 로그인
     public JwtToken adminLogin(LoginRequest loginRequest) {
         Member member = userRepository.findByUsername(loginRequest.getUsername())
                 .orElseThrow(() -> new NotFoundException("회원이 존재하지 않습니다.", ErrorCode.USER_NOT_FOUND));

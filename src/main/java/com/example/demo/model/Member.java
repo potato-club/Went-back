@@ -24,10 +24,9 @@ public class Member {
     private String lastName;
 
     @Enumerated(EnumType.STRING)
-    private Role role; // 기본값을 USER로 설정
+    private Role role;
     
-    // enum 타입을 엔티티 클래스의 속성으로 사용
-    @Enumerated(EnumType.STRING) // enum의 name 값을 데이터베이스에 저장
+    @Enumerated(EnumType.STRING)
     private MemberStatus status;
 
     @JsonBackReference
@@ -53,9 +52,8 @@ public class Member {
         this.lastName = lastName;
     }
 
-    // 권한 반환
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name())); // role을 사용하여 권한 생성
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
 }

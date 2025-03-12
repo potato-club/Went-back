@@ -42,31 +42,17 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        // CSRF disable
         http.csrf((auth) -> auth.disable());
-
-        // Form Login disable
         http.formLogin((auth) -> auth.disable());
-
-        // http basic disable
         http.httpBasic((auth) -> auth.disable());
-
-        // 경로별 인가 작업
         http.authorizeHttpRequests((auth) -> auth
                 .requestMatchers("/api/library/login", "/", "/api/library/signup", "/api/library/admin/signup", "/api/library/admin/login").permitAll()
-                .requestMatchers("/api/library/book", "/api/library/book/{bookId}", "/api/library/author").permitAll() // 도서, 저자 조회
+                .requestMatchers("/api/library/book", "/api/library/book/{bookId}", "/api/library/author").permitAll()
                 .requestMatchers("/api/library/admin/**").hasRole("ADMIN")
-
-                // 나머지 모든 요청 인증된 사용자만 접근 허용
                 .anyRequest().authenticated());
 
-        // 필터 추가 => 사용자 정의 필터로 로그인 과정 처리 (LoginFilter를 UsernamePasswordAuthenticationFilter 위치에서 동작하도록 설정)
         http.addFilterAt(new LoginFilter(authenticationManager(), jwtProvider), UsernamePasswordAuthenticationFilter.class);
-
-        // JWT 인증 필터를 UsernamePasswordAuthenticationFilter 뒤에 추가
         http.addFilterAfter(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class);
-
-        // session 설정
         http.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return http.build();

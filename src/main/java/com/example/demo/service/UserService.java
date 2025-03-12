@@ -22,7 +22,6 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
 
-    // 회원 가입
     public Member createMember(MemberCreationRequest memberCreationRequest) {
         int passwordLength = memberCreationRequest.getPassword().length();
 
@@ -48,7 +47,6 @@ public class UserService {
         return userRepository.save(member);
     }
 
-    // 로그인
     public JwtToken login(LoginRequest loginRequest) {
         Member member = userRepository.findByUsername(loginRequest.getUsername())
                 .orElseThrow(() -> new NotFoundException("회원이 존재하지 않습니다.", ErrorCode.USER_NOT_FOUND));
@@ -57,15 +55,11 @@ public class UserService {
             throw new BadRequestException("비밀번호가 일치하지 않습니다.", ErrorCode.PASSWORD_INCORRECT);
         }
 
-        // UsernamePasswordAuthenticationToken => 인증 후, SecurityContextHolder.getContext()에 등록될 Authentication 객체
-        // 뭔 말임...
         Authentication authentication = new UsernamePasswordAuthenticationToken(member.getUsername(), loginRequest.getPassword(), member.getAuthorities());
 
         return jwtProvider.issueToken(authentication);
     }
 
-    // 토큰 재발급
-    // 여기 검증 로직 수정 ??
     public JwtToken reissueToken(String refreshToken) {
         if (!jwtProvider.validateToken(refreshToken)) {
             throw new BusinessException("Refresh Token이 유효하지 않습니다.", ErrorCode.INVALID_REFRESH_TOKEN);
@@ -73,7 +67,6 @@ public class UserService {
         return jwtProvider.reissueToken(refreshToken);
     }
 
-    // 회원 탈퇴
     public void deleteMember (String username) {
         Member member = userRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("회원이 존재하지 않습니다.", ErrorCode.USER_NOT_FOUND));

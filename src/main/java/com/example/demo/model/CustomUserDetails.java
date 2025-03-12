@@ -17,7 +17,6 @@ public class CustomUserDetails implements UserDetails {
     private String password;
     private Collection<? extends GrantedAuthority> authorities;
 
-    // Member 객체에서 사용자 정보를 가져와서 사용
     public CustomUserDetails(Member member) {
         this.id = member.getId();
         this.username = member.getUsername();

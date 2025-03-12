@@ -1,7 +1,3 @@
-/*
-   클라이언트가 토큰을 Authorization 헤어데 담아서 보냄
-   이 필터에서 Authorization 헤더에서 토큰 검증!
- */
 package com.example.demo.jwt;
 
 import jakarta.servlet.FilterChain;
@@ -27,7 +23,6 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
         HttpServletRequest httpRequest = (HttpServletRequest)request;
         String requestURI = httpRequest.getRequestURI();
 
-        // 회원가입, 로그인, 관리자 가입, 도서 조회 경로에서 토큰 검증 건너뛰도록 처리
         List<String> exemptedPaths = Arrays.asList(
                 "/api/library/signup",
                 "/api/library/login",
@@ -39,28 +34,25 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
         );
 
         if (exemptedPaths.contains(requestURI)) {
-            chain.doFilter(request, response); // 토큰 검증 없이 다음 필터로 넘기기
+            chain.doFilter(request, response);
             return;
         }
 
          String token = resolveToken((HttpServletRequest) request);
 
-        // validateToken() => 토큰 유효성 검사
         if (token != null && jwtProvider.validateToken(token)) {
-            // 토큰이 유효할 경우, 토큰에서 Authentication 객체 가지고 와서 SecurityContext에 저장
-            Authentication authentication = jwtProvider.getAuthentication(token); // Authentication 객체 생성
-            SecurityContextHolder.getContext().setAuthentication(authentication); // SecurityContext에 인증 정보 저장
-            chain.doFilter(request, response); // 다음 filterchain 실행
+            Authentication authentication = jwtProvider.getAuthentication(token);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            chain.doFilter(request, response);
         }
     }
 
-    // Request Header에서 토큰 추출
     private String resolveToken(HttpServletRequest request) {
         String accessToken = request.getHeader("Authorization");
         String refreshToken = request.getHeader("RefreshToken");
 
         if(StringUtils.hasText(accessToken) && accessToken.startsWith("Bearer ")) {
-            return accessToken.substring(7); // "Bearer " 제거하고 토큰 반환
+            return accessToken.substring(7);
         }
 
         if (StringUtils.hasText(refreshToken)) {
