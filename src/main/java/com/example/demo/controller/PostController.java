@@ -1,6 +1,6 @@
 package com.example.demo.controller;
 
-import com.example.demo.entity.Post;
+import com.example.demo.dto.PostDTO;
 import com.example.demo.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,24 +15,26 @@ public class PostController {
     private PostService postService;
 
     @PostMapping
-    public ResponseEntity<Post> createPost(@RequestBody Post post) {
-        return ResponseEntity.ok(postService.createPost(post));
+    public ResponseEntity<PostDTO> createPost(@RequestBody PostDTO postDTO) {
+        return ResponseEntity.ok(postService.createPost(postDTO));
     }
 
     @GetMapping
-    public ResponseEntity<List<Post>> getAllPosts() {
+    public ResponseEntity<List<PostDTO>> getAllPosts() {
         return ResponseEntity.ok(postService.getAllPosts());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Post> getPost(@PathVariable Long id) {
-        return ResponseEntity.ok(postService.getPost(id));
+    public ResponseEntity<PostDTO> getPost(@PathVariable Long id) {
+        PostDTO postDTO = postService.getPost(id);
+        return postDTO != null ? ResponseEntity.ok(postDTO) : ResponseEntity.notFound().build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Post> updatePost(@PathVariable Long id, @RequestBody Post post) {
-        post.setPostId(id);
-        return ResponseEntity.ok(postService.updatePost(post));
+    public ResponseEntity<PostDTO> updatePost(@PathVariable Long id, @RequestBody PostDTO postDTO) {
+        postDTO.setPostId(id);
+        PostDTO updatedPost = postService.updatePost(postDTO);
+        return updatedPost != null ? ResponseEntity.ok(updatedPost) : ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
@@ -41,4 +43,3 @@ public class PostController {
         return ResponseEntity.noContent().build();
     }
 }
-

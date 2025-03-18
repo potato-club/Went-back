@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.CategoryDTO;
 import com.example.demo.entity.Category;
 import com.example.demo.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,29 +8,50 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import java.util.stream.Collectors;
+
 @Service
 public class CategoryService {
     @Autowired
     private CategoryRepository categoryRepository;
 
-    public Category createCategory(Category category) {
-        return categoryRepository.save(category);
+    public CategoryDTO createCategory(CategoryDTO categoryDTO) {
+        Category category = new Category();
+        category.setName(categoryDTO.getName());
+        return convertToDTO(categoryRepository.save(category));
     }
 
-    public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
+    public List<CategoryDTO> getAllCategories() {
+        return categoryRepository.findAll().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
-    public Category getCategory(Long id) {
-        return categoryRepository.findById(id).orElse(null);
+    public CategoryDTO getCategory(Long id) {
+        Category category = categoryRepository.findById(id).orElse(null);
+        return convertToDTO(category);
     }
 
-    public Category updateCategory(Category category) {
-        return categoryRepository.save(category);
+    public CategoryDTO updateCategory(CategoryDTO categoryDTO) {
+        Category category = categoryRepository.findById(categoryDTO.getCategoryId()).orElse(null);
+        if (category != null) {
+            category.setName(categoryDTO.getName());
+            return convertToDTO(categoryRepository.save(category));
+        }
+        return null;
     }
 
     public void deleteCategory(Long id) {
         categoryRepository.deleteById(id);
     }
+
+    private CategoryDTO convertToDTO(Category category) {
+        if (category == null) return null;
+        CategoryDTO dto = new CategoryDTO();
+        dto.setCategoryId(category.getCategoryId());
+        dto.setName(category.getName());
+        return dto;
+    }
 }
+
 

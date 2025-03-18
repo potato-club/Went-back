@@ -1,6 +1,6 @@
 package com.example.demo.controller;
 
-import com.example.demo.entity.Photo;
+import com.example.demo.dto.PhotoDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,24 +15,28 @@ public class PhotoController {
     private PhotoService photoService;
 
     @PostMapping
-    public ResponseEntity<Photo> createPhoto(@RequestBody Photo photo) {
-        return ResponseEntity.ok(photoService.createPhoto(photo));
+    public ResponseEntity<PhotoDTO> createPhoto(@RequestBody PhotoDTO photoDTO) {
+        PhotoDTO createdPhoto = photoService.createPhoto(photoDTO);
+        return ResponseEntity.ok(createdPhoto);
     }
 
     @GetMapping
-    public ResponseEntity<List<Photo>> getAllPhotos() {
-        return ResponseEntity.ok(photoService.getAllPhotos());
+    public ResponseEntity<List<PhotoDTO>> getAllPhotos() {
+        List<PhotoDTO> photos = photoService.getAllPhotos();
+        return ResponseEntity.ok(photos);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Photo> getPhoto(@PathVariable Long id) {
-        return ResponseEntity.ok(photoService.getPhoto(id));
+    public ResponseEntity<PhotoDTO> getPhoto(@PathVariable Long id) {
+        PhotoDTO photoDTO = photoService.getPhoto(id);
+        return photoDTO != null ? ResponseEntity.ok(photoDTO) : ResponseEntity.notFound().build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Photo> updatePhoto(@PathVariable Long id, @RequestBody Photo photo) {
-        photo.setPhotoId(id);
-        return ResponseEntity.ok(photoService.updatePhoto(photo));
+    public ResponseEntity<PhotoDTO> updatePhoto(@PathVariable Long id, @RequestBody PhotoDTO photoDTO) {
+        photoDTO.setPhotoId(id);
+        PhotoDTO updatedPhoto = photoService.updatePhoto(photoDTO);
+        return updatedPhoto != null ? ResponseEntity.ok(updatedPhoto) : ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
@@ -41,4 +45,3 @@ public class PhotoController {
         return ResponseEntity.noContent().build();
     }
 }
-

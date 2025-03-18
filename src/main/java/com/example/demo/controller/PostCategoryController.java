@@ -1,6 +1,6 @@
 package com.example.demo.controller;
 
-import com.example.demo.entity.PostCategory;
+import com.example.demo.dto.PostCategoryDTO;
 import com.example.demo.service.PostCategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,24 +15,26 @@ public class PostCategoryController {
     private PostCategoryService postCategoryService;
 
     @PostMapping
-    public ResponseEntity<PostCategory> createPostCategory(@RequestBody PostCategory postCategory) {
-        return ResponseEntity.ok(postCategoryService.createPostCategory(postCategory));
+    public ResponseEntity<PostCategoryDTO> createPostCategory(@RequestBody PostCategoryDTO postCategoryDTO) {
+        return ResponseEntity.ok(postCategoryService.createPostCategory(postCategoryDTO));
     }
 
     @GetMapping
-    public ResponseEntity<List<PostCategory>> getAllPostCategories() {
+    public ResponseEntity<List<PostCategoryDTO>> getAllPostCategories() {
         return ResponseEntity.ok(postCategoryService.getAllPostCategories());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PostCategory> getPostCategory(@PathVariable Long id) {
-        return ResponseEntity.ok(postCategoryService.getPostCategory(id));
+    public ResponseEntity<PostCategoryDTO> getPostCategory(@PathVariable Long id) {
+        PostCategoryDTO postCategoryDTO = postCategoryService.getPostCategory(id);
+        return postCategoryDTO != null ? ResponseEntity.ok(postCategoryDTO) : ResponseEntity.notFound().build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PostCategory> updatePostCategory(@PathVariable Long id, @RequestBody PostCategory postCategory) {
-        postCategory.setPostCategoryId(id);
-        return ResponseEntity.ok(postCategoryService.updatePostCategory(postCategory));
+    public ResponseEntity<PostCategoryDTO> updatePostCategory(@PathVariable Long id, @RequestBody PostCategoryDTO postCategoryDTO) {
+        postCategoryDTO.setPostCategoryId(id);
+        PostCategoryDTO updatedPostCategory = postCategoryService.updatePostCategory(postCategoryDTO);
+        return updatedPostCategory != null ? ResponseEntity.ok(updatedPostCategory) : ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
@@ -41,4 +43,5 @@ public class PostCategoryController {
         return ResponseEntity.noContent().build();
     }
 }
+
 
