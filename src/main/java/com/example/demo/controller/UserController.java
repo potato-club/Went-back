@@ -1,6 +1,8 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.UserDTO;
+import com.example.demo.dto.UserCreationDTO;
+import com.example.demo.dto.UserResponseDTO;
+import com.example.demo.dto.UserUpdateDTO;
 import com.example.demo.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,28 +22,27 @@ public class UserController {
 
     @Operation(summary = "사용자 등록", description = "새로운 사용자를 등록합니다.")
     @PostMapping
-    public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDTO) {
+    public ResponseEntity<UserResponseDTO> createUser(@RequestBody UserCreationDTO userDTO) {
         return ResponseEntity.ok(userService.createUser(userDTO));
     }
 
     @Operation(summary = "전체 사용자 조회", description = "등록된 모든 사용자를 조회합니다.")
     @GetMapping
-    public ResponseEntity<List<UserDTO>> getAllUsers() {
+    public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
     @Operation(summary = "단일 사용자 조회", description = "ID로 특정 사용자를 조회합니다.")
     @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> getUser(@PathVariable Long id) {
-        UserDTO userDTO = userService.getUser(id);
+    public ResponseEntity<UserResponseDTO> getUser(@PathVariable Long id) {
+        UserResponseDTO userDTO = userService.getUser(id);
         return userDTO != null ? ResponseEntity.ok(userDTO) : ResponseEntity.notFound().build();
     }
 
     @Operation(summary = "사용자 수정", description = "ID에 해당하는 사용자 정보를 수정합니다.")
     @PutMapping("/{id}")
-    public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody UserDTO userDTO) {
-        userDTO.setUserId(id);
-        UserDTO updatedUser = userService.updateUser(userDTO);
+    public ResponseEntity<UserResponseDTO> updateUser(@RequestBody UserUpdateDTO userUpdateDTO) {
+        UserResponseDTO updatedUser = userService.updateUser(userUpdateDTO);
         return updatedUser != null ? ResponseEntity.ok(updatedUser) : ResponseEntity.notFound().build();
     }
 

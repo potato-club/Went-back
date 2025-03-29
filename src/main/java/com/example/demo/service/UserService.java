@@ -1,7 +1,9 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.UserDTO;
-import com.example.demo.entity.User;
+import com.example.demo.dto.UserCreationDTO;
+import com.example.demo.dto.UserResponseDTO;
+import com.example.demo.dto.UserUpdateDTO;
+import com.example.demo.entity.UserEntity;
 import com.example.demo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,47 +16,38 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    public UserDTO createUser(UserDTO userDTO) {
-        User user = new User();
-        user.setNickname(userDTO.getNickname());
-        user.setEmail(userDTO.getEmail());
-        user.setRegion(userDTO.getRegion());
-        return convertToDTO(userRepository.save(user));
+    public UserResponseDTO createUser(UserCreationDTO userDTO) {
+        UserEntity userEntity = new UserEntity();
+        userEntity.setSocialKey(userDTO.getSocialKey());
+        userEntity.setEmail(userDTO.getEmail());
+        UserEntity result = userRepository.save(userEntity);
+        return result.toUserResponseDTO();
     }
 
-    public List<UserDTO> getAllUsers() {
+    public List<UserResponseDTO> getAllUsers() {
         return userRepository.findAll().stream()
-                .map(this::convertToDTO)
+                .map(UserEntity::toUserResponseDTO)
                 .collect(Collectors.toList());
     }
 
-    public UserDTO getUser(Long id) {
-        User user = userRepository.findById(id).orElse(null);
-        return convertToDTO(user);
+    public UserResponseDTO getUser(Long id) {
+        UserEntity userEntity = userRepository.findById(id).orElse(null);
+        return userEntity != null ? userEntity.toUserResponseDTO() : null;
     }
 
-    public UserDTO updateUser(UserDTO userDTO) {
-        User user = userRepository.findById(userDTO.getUserId()).orElse(null);
-        if (user != null) {
-            user.setNickname(userDTO.getNickname());
-            user.setEmail(userDTO.getEmail());
-            user.setRegion(userDTO.getRegion());
-            return convertToDTO(userRepository.save(user));
+    public UserResponseDTO updateUser(UserUpdateDTO userDTO) {
+        List<UserEntity> listResult = userRepository.findBySocialKeyAndEmail(userDTO.getSocialKey(), userDTO.getEmail());
+        if (listResult.size() != 1) {
+            return null;
         }
-        return null;
+        UserEntity userEntity = listResult.get(0);
+        userEntity.updateUser(userDTO);
+        UserEntity result = userRepository.save(userEntity);
+        return result.toUserResponseDTO();
     }
 
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
     }
 
-    private UserDTO convertToDTO(User user) {
-        if (user == null) return null;
-        UserDTO dto = new UserDTO();
-        dto.setUserId(user.getUserId());
-        dto.setNickname(user.getNickname());
-        dto.setEmail(user.getEmail());
-        dto.setRegion(user.getRegion());
-        return dto;
-    }
 }

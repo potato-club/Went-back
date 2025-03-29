@@ -1,28 +1,22 @@
 package com.example.demo.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.*;
 
-@Schema(description = "사용자 정보를 담는 DTO")
-public class UserDTO {
+import java.time.LocalDateTime;
 
-    @Schema(description = "사용자 ID", example = "1")
-    private Long userId;
-
-    @Schema(description = "닉네임", example = "홍길동")
+public class UserResponseDTO {
+    private Long socialKey;
     private String nickname;
-
-    @Schema(description = "이메일 주소", example = "hong@example.com")
     private String email;
-
-    @Schema(description = "지역 정보", example = "서울특별시")
+    private LocalDateTime birthDate;
     private String region;
 
-    public Long getUserId() {
-        return userId;
+    public Long getSocialKey() {
+        return socialKey;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setSocialKey(Long socialKey) {
+        this.socialKey = socialKey;
     }
 
     public String getNickname() {
@@ -41,6 +35,14 @@ public class UserDTO {
         this.email = email;
     }
 
+    public LocalDateTime getBirthDate() {
+        return birthDate;
+    }
+
+    public void setBirthDate(LocalDateTime birthDate) {
+        this.birthDate = birthDate;
+    }
+
     public String getRegion() {
         return region;
     }
@@ -49,3 +51,4 @@ public class UserDTO {
         this.region = region;
     }
 }
+
