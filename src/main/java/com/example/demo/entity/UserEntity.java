@@ -5,7 +5,11 @@ import com.example.demo.dto.UserUpdateDTO;
 import jakarta.persistence.*;
 import org.springframework.beans.BeanUtils;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "tb_user")
@@ -19,9 +23,11 @@ public class UserEntity {
 
     private String nickname;
     private String email;
-    private LocalDateTime birthDate;
+    private LocalDate birthDate;
     private String region;
 
+    @ElementCollection
+    private List<Long> categoryIds;
 
     public Long getUserId() {
         return userId;
@@ -55,11 +61,11 @@ public class UserEntity {
         this.email = email;
     }
 
-    public LocalDateTime getBirthDate() {
+    public LocalDate getBirthDate() {
         return birthDate;
     }
 
-    public void setBirthDate(LocalDateTime birthDate) {
+    public void setBirthDate(LocalDate birthDate) {
         this.birthDate = birthDate;
     }
 
@@ -71,14 +77,26 @@ public class UserEntity {
         this.region = region;
     }
 
+    public List<Long> getCategoryIds() {
+        return categoryIds;
+    }
+
+    public void setCategoryIds(List<Long> categoryIds) {
+        this.categoryIds = categoryIds;
+    }
+
     public UserResponseDTO toUserResponseDTO() {
         UserResponseDTO userResponseDTO = new UserResponseDTO();
         BeanUtils.copyProperties(this, userResponseDTO);
         return userResponseDTO;
     }
 
-    public UserEntity updateUser(UserUpdateDTO userUpdateDTO) {
-        BeanUtils.copyProperties(this, userUpdateDTO);
+    public UserEntity updateByDto(UserUpdateDTO userUpdateDTO) {
+        this.birthDate = LocalDate.parse(userUpdateDTO.getBirthDate());
+        this.nickname = userUpdateDTO.getNickName();
+        this.email = userUpdateDTO.getEmail();
+        this.region = userUpdateDTO.getRegion();
+        this.categoryIds = userUpdateDTO.getCategories() != null ? userUpdateDTO.getCategories() : new ArrayList<>();
         return this;
     }
 }

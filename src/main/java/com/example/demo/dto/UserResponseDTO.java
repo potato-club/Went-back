@@ -2,20 +2,23 @@ package com.example.demo.dto;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class UserResponseDTO {
-    private Long socialKey;
+    private String socialKey;
     private String nickname;
     private String email;
-    private LocalDateTime birthDate;
+    private LocalDate birthDate;
     private String region;
+    private List<Long> categoryIds;
 
-    public Long getSocialKey() {
+    public String getSocialKey() {
         return socialKey;
     }
 
-    public void setSocialKey(Long socialKey) {
+    public void setSocialKey(String socialKey) {
         this.socialKey = socialKey;
     }
 
@@ -35,11 +38,11 @@ public class UserResponseDTO {
         this.email = email;
     }
 
-    public LocalDateTime getBirthDate() {
+    public LocalDate getBirthDate() {
         return birthDate;
     }
 
-    public void setBirthDate(LocalDateTime birthDate) {
+    public void setBirthDate(LocalDate birthDate) {
         this.birthDate = birthDate;
     }
 
@@ -49,6 +52,14 @@ public class UserResponseDTO {
 
     public void setRegion(String region) {
         this.region = region;
+    }
+
+    public List<Long> getCategoryIds() {
+        return categoryIds;
+    }
+
+    public void setCategoryIds(List<Long> categoryIds) {
+        this.categoryIds = categoryIds;
     }
 }
 

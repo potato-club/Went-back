@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import com.example.demo.dto.UserCreationDTO;
 import com.example.demo.dto.UserResponseDTO;
+import com.example.demo.dto.UserUniqueDTO;
 import com.example.demo.dto.UserUpdateDTO;
 import com.example.demo.entity.UserEntity;
 import com.example.demo.repository.UserRepository;
@@ -35,13 +36,22 @@ public class UserService {
         return userEntity != null ? userEntity.toUserResponseDTO() : null;
     }
 
+    public UserResponseDTO findUser(UserUniqueDTO userUniqueDTO) {
+        List<UserEntity> listResult = userRepository.findBySocialKeyAndEmail(userUniqueDTO.getSocialKey(), userUniqueDTO.getEmail());
+        if (listResult.size() != 1) {
+            return null;
+        }
+        UserEntity userEntity = listResult.get(0);
+        return userEntity != null ? userEntity.toUserResponseDTO() : null;
+    }
+
     public UserResponseDTO updateUser(UserUpdateDTO userDTO) {
         List<UserEntity> listResult = userRepository.findBySocialKeyAndEmail(userDTO.getSocialKey(), userDTO.getEmail());
         if (listResult.size() != 1) {
             return null;
         }
         UserEntity userEntity = listResult.get(0);
-        userEntity.updateUser(userDTO);
+        userEntity.updateByDto(userDTO);
         UserEntity result = userRepository.save(userEntity);
         return result.toUserResponseDTO();
     }

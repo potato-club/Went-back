@@ -29,5 +29,5 @@ public class UserUpdateDTO {
     private String region;
 
     @NotBlank(message = "Password is required.")
-    private List<Category> categories = new ArrayList<>();
+    private List<Long> categories = new ArrayList<>();
 }
