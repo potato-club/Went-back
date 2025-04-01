@@ -1,49 +1,63 @@
 package com.example.demo.controller;
 
-import com.example.demo.jwt.JwtToken;
-import com.example.demo.model.request.LoginRequest;
-import com.example.demo.model.request.MemberCreationRequest;
+import com.example.demo.dto.UserCreationDTO;
+import com.example.demo.dto.UserResponseDTO;
+import com.example.demo.dto.UserUniqueDTO;
+import com.example.demo.dto.UserUpdateDTO;
 import com.example.demo.service.UserService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
+@Tag(name = "User API", description = "사용자 관련 API")
 @RestController
-@RequestMapping(value = "/api/library")
-@RequiredArgsConstructor
+@RequestMapping("/api/users")
 public class UserController {
-    private final UserService userService;
 
-    @PostMapping("/signup")
-    public ResponseEntity<String> createMember (@RequestBody @Valid MemberCreationRequest memberCreationRequest) {
-        userService.createMember(memberCreationRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Signup Success! XD");
+    @Autowired
+    private UserService userService;
+
+    @Operation(summary = "사용자 등록", description = "새로운 사용자를 등록합니다.")
+    @PostMapping
+    public ResponseEntity<UserResponseDTO> createUser(@RequestBody UserCreationDTO userDTO) {
+        return ResponseEntity.ok(userService.createUser(userDTO));
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<String> loginMember (@RequestBody @Valid LoginRequest loginRequest) {
-        JwtToken token = userService.login(loginRequest);
-        return ResponseEntity.ok()
-                .header("Authorization","Bearer " + token.getAccessToken())
-                .header("RefreshToken", token.getRefreshToken())
-                .body("Login Success ♪♬");
+    @Operation(summary = "전체 사용자 조회", description = "등록된 모든 사용자를 조회합니다.")
+    @GetMapping
+    public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
+        return ResponseEntity.ok(userService.getAllUsers());
     }
 
-    @PostMapping("/reissue")
-    public ResponseEntity<String> reissueToken(@RequestHeader("RefreshToken") String refreshToken) {
-        JwtToken newToken = userService.reissueToken(refreshToken);
-
-        return ResponseEntity.ok()
-                .header("Authorization","Bearer " + newToken.getAccessToken())
-                .header("RefreshToken", newToken.getRefreshToken())
-                .body("Token reissued successfully :D");
+    @Operation(summary = "단일 사용자 조회", description = "ID로 특정 사용자를 조회합니다.")
+    @GetMapping("/{id}")
+    public ResponseEntity<UserResponseDTO> getUser(@PathVariable Long id) {
+        UserResponseDTO userDTO = userService.getUser(id);
+        return userDTO != null ? ResponseEntity.ok(userDTO) : ResponseEntity.notFound().build();
     }
 
-    @DeleteMapping("/member/{username}")
-    public ResponseEntity<String> deleteMember (@PathVariable("username") String username) {
-        userService.deleteMember(username);
-        return ResponseEntity.ok("The ID deleted successfully.");
+    @Operation(summary = "단일 사용자 조회", description = "email+socialkey로 특정 사용자를 조회합니다.")
+    @PostMapping("/find")
+    public ResponseEntity<UserResponseDTO> getUser(@RequestBody UserUniqueDTO userUniqueDTO) {
+        UserResponseDTO userDTO = userService.findUser(userUniqueDTO);
+        return userDTO != null ? ResponseEntity.ok(userDTO) : ResponseEntity.notFound().build();
+    }
+
+    @Operation(summary = "사용자 수정", description = "ID에 해당하는 사용자 정보를 수정합니다.")
+    @PutMapping("/{id}")
+    public ResponseEntity<UserResponseDTO> updateUser(@RequestBody UserUpdateDTO userUpdateDTO) {
+        UserResponseDTO updatedUser = userService.updateUser(userUpdateDTO);
+        return updatedUser != null ? ResponseEntity.ok(updatedUser) : ResponseEntity.notFound().build();
+    }
+
+    @Operation(summary = "사용자 삭제", description = "ID에 해당하는 사용자를 삭제합니다.")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
     }
 }
