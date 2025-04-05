@@ -36,5 +36,11 @@ out/
 ### VS Code ###
 .vscode/
 
-# Exclude all .yml files
-*.yml
+### Spring Boot ###
+# 실제 설정 파일은 커밋하지 않도록!
+src/main/resources/application.yml
+src/main/resources/application-local.yml
+src/main/resources/application-prod.yml
+
+# 예시용 설정 파일은 커밋 가능
+!src/main/resources/application-example.yml

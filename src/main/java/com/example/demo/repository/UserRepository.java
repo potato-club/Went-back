@@ -1,7 +1,10 @@
 package com.example.demo.repository;
 
-import com.example.demo.entity.User;
+import com.example.demo.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface UserRepository extends JpaRepository<User, Long> {
+import java.util.List;
+
+public interface UserRepository extends JpaRepository<UserEntity, Long> {
+    List<UserEntity> findBySocialKeyAndEmail(String socialKey, String email);
 }

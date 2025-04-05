@@ -48,10 +48,8 @@ public class CategoryService {
     private CategoryDTO convertToDTO(Category category) {
         if (category == null) return null;
         CategoryDTO dto = new CategoryDTO();
-        dto.setCategoryId(category.getCategoryId());
+        dto.setCategoryId(category.getId());
         dto.setName(category.getName());
         return dto;
     }
 }
-
-
