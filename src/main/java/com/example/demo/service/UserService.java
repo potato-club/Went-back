@@ -5,7 +5,14 @@ import com.example.demo.dto.UserResponseDTO;
 import com.example.demo.dto.UserUniqueDTO;
 import com.example.demo.dto.UserUpdateDTO;
 import com.example.demo.entity.UserEntity;
+import com.example.demo.error.ErrorCode;
+import com.example.demo.error.NotFoundException;
+import com.example.demo.jwt.JwtProvider;
+import com.example.demo.jwt.JwtToken;
 import com.example.demo.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,12 +23,22 @@ import java.util.stream.Collectors;
 public class UserService {
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private JwtProvider jwtProvider;
 
-    public UserResponseDTO createUser(UserCreationDTO userDTO) {
+    @Transactional
+    public UserResponseDTO createUser(UserCreationDTO userDTO, HttpServletResponse response) {
         UserEntity userEntity = new UserEntity();
         userEntity.setSocialKey(userDTO.getSocialKey());
         userEntity.setEmail(userDTO.getEmail());
         UserEntity result = userRepository.save(userEntity);
+
+        // JWT 토큰 발급
+        JwtToken jwtToken = jwtProvider.issueToken(result);
+
+        jwtProvider.setHeaderAccessToken(response, jwtToken.getAccessToken());
+        jwtProvider.setHeaderRefreshToken(response, jwtToken.getRefreshToken());
+
         return result.toUserResponseDTO();
     }
 
@@ -45,19 +62,24 @@ public class UserService {
         return userEntity != null ? userEntity.toUserResponseDTO() : null;
     }
 
-    public UserResponseDTO updateUser(UserUpdateDTO userDTO) {
-        List<UserEntity> listResult = userRepository.findBySocialKeyAndEmail(userDTO.getSocialKey(), userDTO.getEmail());
-        if (listResult.size() != 1) {
-            return null;
-        }
-        UserEntity userEntity = listResult.get(0);
-        userEntity.updateByDto(userDTO);
-        UserEntity result = userRepository.save(userEntity);
+    // 추가 정보 입력
+    public UserResponseDTO updateUser(UserUpdateDTO userDTO, HttpServletRequest request) {
+        UserEntity user = findUserByAccessToken(request);
+        user.updateByDto(userDTO);
+        UserEntity result = userRepository.save(user);
         return result.toUserResponseDTO();
     }
 
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
+    }
+
+    public UserEntity findUserByAccessToken(HttpServletRequest request) {
+        String token = jwtProvider.resolveToken(request);
+        String username = jwtProvider.getUsernameFromToken(token);
+
+        return userRepository.findByEmail(username).orElseThrow(() ->
+                new NotFoundException("사용자를 찾을 수 없습니다.", ErrorCode.USER_NOT_FOUND));
     }
 
 }
