@@ -4,7 +4,6 @@ import com.example.demo.dto.UserCreationDTO;
 import com.example.demo.dto.UserResponseDTO;
 import com.example.demo.dto.UserUniqueDTO;
 import com.example.demo.dto.UserUpdateDTO;
-import com.example.demo.jwt.JwtToken;
 import com.example.demo.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
