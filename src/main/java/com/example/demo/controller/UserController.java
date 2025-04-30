@@ -4,6 +4,7 @@ import com.example.demo.dto.UserCreationDTO;
 import com.example.demo.dto.UserResponseDTO;
 import com.example.demo.dto.UserUniqueDTO;
 import com.example.demo.dto.UserUpdateDTO;
+import com.example.demo.jwt.JwtToken;
 import com.example.demo.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -51,7 +52,6 @@ public class UserController {
 
     // 추가 정보 입력
     @Operation(summary = "사용자 수정", description = "ID에 해당하는 사용자 정보를 수정합니다.")
-//    @PutMapping("/{id}")
     @PutMapping
     public ResponseEntity<UserResponseDTO> updateUser(@RequestBody UserUpdateDTO userUpdateDTO, HttpServletRequest request) {
         UserResponseDTO updatedUser = userService.updateUser(userUpdateDTO, request);
@@ -65,4 +65,10 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "토큰 재발급", description = "AT, RT를 재발급합니다.")
+    @PostMapping("/reissue")
+    public ResponseEntity<Void> reissueToken(HttpServletRequest request, HttpServletResponse response) {
+        userService.reissueToken(request, response);
+        return ResponseEntity.noContent().build();
+    }
 }

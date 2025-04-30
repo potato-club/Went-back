@@ -1,6 +1,6 @@
 package com.example.demo.config;
 
-import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
@@ -20,11 +20,24 @@ public class SwaggerConfig {
                 .scheme("bearer");
     }
 
+    private SecurityScheme createRefreshTokenScheme() {
+        return new SecurityScheme()
+                .type(SecurityScheme.Type.HTTP)
+                .bearerFormat("JWT")
+                .scheme("bearer")
+                .name("Refresh-Token");
+    }
+
     public OpenApiCustomizer createOpenApiCustomizer(String title, String version) {
         return openApi -> {
             openApi.info(new Info().title(title).version(version));
+
             openApi.schemaRequirement("bearerAuth", createAPIKeyScheme());
             openApi.addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
+
+            openApi.schemaRequirement("refreshToken", createRefreshTokenScheme());
+            openApi.addSecurityItem(new SecurityRequirement().addList("refreshToken"));
+
             openApi.addServersItem(new Server()
                     .url("https://went_back.gamza.club")
                     .description("Test Server"));

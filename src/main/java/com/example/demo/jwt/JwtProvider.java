@@ -1,10 +1,8 @@
 package com.example.demo.jwt;
 
 import com.example.demo.entity.UserEntity;
-import com.example.demo.error.BadRequestException;
-import com.example.demo.error.ErrorCode;
-import com.example.demo.error.TokenCreationException;
-import com.example.demo.error.UnAuthorizedException;
+import com.example.demo.error.*;
+import com.example.demo.repository.UserRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -32,8 +30,9 @@ import static com.example.demo.jwt.JwtConstant.*;
 @Component
 public class JwtProvider {
     private final Key key;
+    private final UserRepository userRepository;
 
-    public JwtProvider(@Value("${jwt.secretKey}") String secretKey) {
+    public JwtProvider(@Value("${jwt.secretKey}") String secretKey, UserRepository userRepository) {
         secretKey = secretKey.trim();
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
 
@@ -42,6 +41,7 @@ public class JwtProvider {
         }
 
         this.key = Keys.hmacShaKeyFor(keyBytes);
+        this.userRepository = userRepository;
     }
 
     public String createAccessToken(String username, String authorities) {
@@ -60,7 +60,7 @@ public class JwtProvider {
         }
     }
 
-    public String createRefreshToken(String username, String authorities) {
+    public String createRefreshToken(String username) {
         try {
             long now = (new Date()).getTime();
             Date refreshTokenExpiration = new Date(now + REFRESH_TOKEN_EXPIRE_TIME);
@@ -75,29 +75,12 @@ public class JwtProvider {
         }
     }
 
-    public JwtToken issueToken(Authentication authentication) {
-        String username = authentication.getName();
-        String authorities = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                        .collect(Collectors.joining(","));
-
-        String accessToken = createAccessToken(username, authorities);
-        String refreshToken = createRefreshToken(username, authorities);
-
-        return JwtToken.builder()
-                .grantType(GRANT_TYPE)
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .build();
-
-    }
-
     public JwtToken issueToken(UserEntity user) {
         String username = user.getEmail();
         String authorities = "user"; // 일단 권한 정보 X
 
         String accessToken = createAccessToken(username, authorities);
-        String refreshToken = createRefreshToken(username, authorities);
+        String refreshToken = createRefreshToken(username);
 
         return JwtToken.builder()
                 .grantType(GRANT_TYPE)
@@ -106,21 +89,19 @@ public class JwtProvider {
                 .build();
     }
 
+
     public JwtToken reissueToken(String refreshToken) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(refreshToken)
-                .getBody();
+        if (!validateToken(refreshToken)) {
+            throw new InvalidTokenException("유효하지 않은 토큰입니다.", ErrorCode.INVALID_REFRESH_TOKEN);
+        }
 
-        String username = claims.getSubject();
-        String authorities = (String) claims.get("authorities");
+        String username = getUsernameFromToken(refreshToken);
 
-        String newAccessToken = createAccessToken(username, authorities);
-        String newRefreshToken = createRefreshToken(username, authorities);
+        UserEntity user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new UnAuthorizedException("존재하지 않는 사용자입니다.", ErrorCode.USER_NOT_FOUND));
 
-        log.info("Reissued Access Token: Bearer " + newAccessToken);
-        log.info("Reissued Refresh Token: " + newRefreshToken);
+        String newAccessToken = createAccessToken(username, "user"); // role 없음
+        String newRefreshToken = createRefreshToken(username);
 
         return JwtToken.builder()
                 .grantType(GRANT_TYPE)
@@ -171,11 +152,6 @@ public class JwtProvider {
         String authority = (String) claims.get("authorities"); // user
 
         Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(authority));
-
-//        List<String> authoritiesList = claims.get("authorities", List.class);
-//        Collection<GrantedAuthority> authorities = authoritiesList.stream()
-//                .map(SimpleGrantedAuthority::new)
-//                .collect(Collectors.toList());
 
         UserEntity user = new UserEntity();
         user.setEmail(username); // 이메일만 담아둠

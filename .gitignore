@@ -38,3 +38,9 @@ out/
 
 # Exclude all .yml files
 *.yml
+
+.DS_Store
+._.DS_Store
+**/.DS_Store
+**/._.DS_Store
+

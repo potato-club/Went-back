@@ -6,7 +6,9 @@ import com.example.demo.dto.UserUniqueDTO;
 import com.example.demo.dto.UserUpdateDTO;
 import com.example.demo.entity.UserEntity;
 import com.example.demo.error.ErrorCode;
+import com.example.demo.error.InvalidTokenException;
 import com.example.demo.error.NotFoundException;
+import com.example.demo.error.UnAuthorizedException;
 import com.example.demo.jwt.JwtProvider;
 import com.example.demo.jwt.JwtToken;
 import com.example.demo.repository.UserRepository;
@@ -23,6 +25,7 @@ import java.util.stream.Collectors;
 public class UserService {
     @Autowired
     private UserRepository userRepository;
+
     @Autowired
     private JwtProvider jwtProvider;
 
@@ -33,7 +36,8 @@ public class UserService {
         userEntity.setEmail(userDTO.getEmail());
         UserEntity result = userRepository.save(userEntity);
 
-        // JWT 토큰 발급
+        // 소셜 키 검증
+
         JwtToken jwtToken = jwtProvider.issueToken(result);
 
         jwtProvider.setHeaderAccessToken(response, jwtToken.getAccessToken());
@@ -70,6 +74,8 @@ public class UserService {
         return result.toUserResponseDTO();
     }
 
+
+
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
     }
@@ -82,4 +88,21 @@ public class UserService {
                 new NotFoundException("사용자를 찾을 수 없습니다.", ErrorCode.USER_NOT_FOUND));
     }
 
+    // 토큰 재발급
+    public void reissueToken(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = jwtProvider.resolveToken(request);
+
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            throw new InvalidTokenException("Refresh Token이 존재하지 않습니다.", ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        if (!jwtProvider.validateToken(refreshToken)) {
+            throw new UnAuthorizedException("Refresh Token이 유효하지 않습니다.", ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        JwtToken jwtToken = jwtProvider.reissueToken(refreshToken);
+
+        jwtProvider.setHeaderAccessToken(response, jwtToken.getAccessToken());
+        jwtProvider.setHeaderRefreshToken(response, jwtToken.getRefreshToken());
+    }
 }

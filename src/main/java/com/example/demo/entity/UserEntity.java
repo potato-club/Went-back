@@ -94,7 +94,7 @@ public class UserEntity {
     public UserEntity updateByDto(UserUpdateDTO userUpdateDTO) {
         this.birthDate = LocalDate.parse(userUpdateDTO.getBirthDate());
         this.nickname = userUpdateDTO.getNickName();
-        this.email = userUpdateDTO.getEmail();
+//        this.email = userUpdateDTO.getEmail();
         this.region = userUpdateDTO.getRegion();
         this.categoryIds = userUpdateDTO.getCategories() != null ? userUpdateDTO.getCategories() : new ArrayList<>();
         return this;
