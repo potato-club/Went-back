@@ -1,0 +1,42 @@
+server:
+  port: 80
+spring:
+  application:
+    name: hsserver
+  datasource:
+    url: jdbc:mariadb://35.203.163.2:3306/went_db
+    username: went_user
+    password: wentdbuser714
+    driver-class-name: org.mariadb.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+      hibernate:
+        enable_lazy_load_no_trans: true
+        show_sql: true
+        format_sql: true
+        #        dialect: org.hibernate.dialect.MySQLDialect
+        transaction.jta.platform: org.hibernate.service.jta.JtaPlatform
+    open-in-view: false
+
+cloud:
+  aws:
+    s3:
+      bucket:
+    credentials:
+      access-key:
+      secret-key:
+    region:
+      static: ap-northeast-2
+    stack:
+      auto: false
+
+jwt:
+  secretKey: czNjcjN0SzN5IUAjVGgxczFzQVYzcnlTdHIwbmdTM2NyM1RLZ3YwckpXVA==
+  playerTokenExpiration: 60000 # 60 * 1000  #
+  accessExpiration: 3600000 # 30000  #
+  refreshExpiration: 604800000 # 60000 #
+  aesKey: jis9a0sl4iez3112

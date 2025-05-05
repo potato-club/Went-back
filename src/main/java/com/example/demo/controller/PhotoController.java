@@ -1,56 +1,30 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.PhotoDTO;
-import com.example.demo.service.PhotoService;
+import com.example.demo.entity.Photo;
+import com.example.demo.repository.PhotoRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.Optional;
 
 @Tag(name = "Photo API", description = "사진 관련 API")
 @RestController
 @RequestMapping("/api/photos")
 public class PhotoController {
 
-    @Autowired
-    private PhotoService photoService;
+    private final PhotoRepository photoRepository;
 
-    @Operation(summary = "사진 등록", description = "새로운 사진을 등록합니다.")
-    @PostMapping
-    public ResponseEntity<PhotoDTO> createPhoto(@RequestBody PhotoDTO photoDTO) {
-        PhotoDTO createdPhoto = photoService.createPhoto(photoDTO);
-        return ResponseEntity.ok(createdPhoto);
+    public PhotoController(PhotoRepository photoRepository) {
+        this.photoRepository = photoRepository;
     }
 
-    @Operation(summary = "전체 사진 조회", description = "등록된 모든 사진을 조회합니다.")
-    @GetMapping
-    public ResponseEntity<List<PhotoDTO>> getAllPhotos() {
-        List<PhotoDTO> photos = photoService.getAllPhotos();
-        return ResponseEntity.ok(photos);
-    }
-
-    @Operation(summary = "단일 사진 조회", description = "ID를 기준으로 사진을 조회합니다.")
-    @GetMapping("/{id}")
-    public ResponseEntity<PhotoDTO> getPhoto(@PathVariable Long id) {
-        PhotoDTO photoDTO = photoService.getPhoto(id);
-        return photoDTO != null ? ResponseEntity.ok(photoDTO) : ResponseEntity.notFound().build();
-    }
-
-    @Operation(summary = "사진 수정", description = "ID를 기준으로 사진 정보를 수정합니다.")
-    @PutMapping("/{id}")
-    public ResponseEntity<PhotoDTO> updatePhoto(@PathVariable Long id, @RequestBody PhotoDTO photoDTO) {
-        photoDTO.setPhotoId(id);
-        PhotoDTO updatedPhoto = photoService.updatePhoto(photoDTO);
-        return updatedPhoto != null ? ResponseEntity.ok(updatedPhoto) : ResponseEntity.notFound().build();
-    }
-
-    @Operation(summary = "사진 삭제", description = "ID를 기준으로 사진을 삭제합니다.")
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePhoto(@PathVariable Long id) {
-        photoService.deletePhoto(id);
-        return ResponseEntity.noContent().build();
+    @Operation(summary = "게시글 ID로 사진 URL 조회")
+    @GetMapping("/{postId}")
+    public ResponseEntity<String> getPhotoByPostId(@PathVariable Long postId) {
+        return photoRepository.findFirstByPostId(postId)
+                .map(photo -> ResponseEntity.ok(photo.getUrl()))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }

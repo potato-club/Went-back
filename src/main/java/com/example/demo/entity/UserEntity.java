@@ -6,8 +6,6 @@ import jakarta.persistence.*;
 import org.springframework.beans.BeanUtils;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -94,10 +92,9 @@ public class UserEntity {
     public UserEntity updateByDto(UserUpdateDTO userUpdateDTO) {
         this.birthDate = LocalDate.parse(userUpdateDTO.getBirthDate());
         this.nickname = userUpdateDTO.getNickName();
-//        this.email = userUpdateDTO.getEmail();
+        this.email = userUpdateDTO.getEmail();
         this.region = userUpdateDTO.getRegion();
         this.categoryIds = userUpdateDTO.getCategories() != null ? userUpdateDTO.getCategories() : new ArrayList<>();
         return this;
     }
 }
-
