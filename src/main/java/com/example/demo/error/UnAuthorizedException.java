@@ -1,7 +1,7 @@
 package com.example.demo.error;
 
-public class UnAuthorizedException extends RuntimeException {
-  public UnAuthorizedException(String message) {
-    super(message);
+public class UnAuthorizedException extends BusinessException {
+  public UnAuthorizedException(String message, ErrorCode errorCode) {
+    super(message, errorCode);
   }
 }
