@@ -13,4 +13,6 @@ public interface PhotoRepository extends JpaRepository<Photo, Long> {
 
     // 게시글 ID로 단일 사진 가져오기 (단건 대응)
     Optional<Photo> findFirstByPostId(Long postId);
+    Optional<Photo> findFirstByPostIdOrderByPhotoIdAsc(Long postId);
+
 }

@@ -51,7 +51,12 @@ public class PostService {
         // 여러 장 업로드
         if (multipartFiles != null && !multipartFiles.isEmpty()) {
             for (MultipartFile file : multipartFiles) {
-                s3Service.uploadFile(savedPost.getUserId(), savedPost.getPostId(), file);
+                String url = s3Service.uploadFile(savedPost.getUserId(), savedPost.getPostId(), file);
+
+                Photo photo = new Photo();
+                photo.setPostId(savedPost.getPostId());
+                photo.setUrl(url);
+                photoRepository.save(photo);
             }
         }
 

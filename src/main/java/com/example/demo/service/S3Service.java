@@ -57,6 +57,25 @@ public class S3Service {
         return fileUrl;
     }
 
+    public String uploadImageOnly(MultipartFile multipartFile) {
+        String originalFilename = multipartFile.getOriginalFilename();
+        String s3FileName = UUID.randomUUID().toString().substring(0, 10) + "_" + originalFilename;
+
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(multipartFile.getSize());
+        metadata.setContentType(multipartFile.getContentType());
+
+        try (InputStream inputStream = multipartFile.getInputStream()) {
+            amazonS3.putObject(new PutObjectRequest(bucket, s3FileName, inputStream, metadata)
+                    .withCannedAcl(CannedAccessControlList.PublicRead));
+        } catch (IOException e) {
+            throw new RuntimeException("S3 업로드 실패", e);
+        }
+
+        return amazonS3.getUrl(bucket, s3FileName).toString();
+    }
+
+
     public void deleteFile(String fileName) {
         amazonS3.deleteObject(new DeleteObjectRequest(bucket, fileName));
     }
