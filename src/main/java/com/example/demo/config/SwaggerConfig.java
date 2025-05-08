@@ -24,7 +24,6 @@ public class SwaggerConfig {
         return new SecurityScheme()
                 .type(SecurityScheme.Type.HTTP)
                 .bearerFormat("JWT")
-                .scheme("bearer")
                 .name("Refresh-Token");
     }
 

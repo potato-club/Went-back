@@ -5,10 +5,12 @@ import com.example.demo.dto.UserResponseDTO;
 import com.example.demo.dto.UserUniqueDTO;
 import com.example.demo.dto.UserUpdateDTO;
 import com.example.demo.service.UserService;
+import com.example.demo.service.impl.UserServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,11 +19,10 @@ import java.util.List;
 
 @Tag(name = "User API", description = "사용자 관련 API")
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/users")
 public class UserController {
-
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
     @Operation(summary = "사용자 등록", description = "새로운 사용자를 등록합니다.")
     @PostMapping
@@ -49,8 +50,7 @@ public class UserController {
         return userDTO != null ? ResponseEntity.ok(userDTO) : ResponseEntity.notFound().build();
     }
 
-    // 추가 정보 입력
-    @Operation(summary = "사용자 수정", description = "ID에 해당하는 사용자 정보를 수정합니다.")
+    @Operation(summary = "사용자 추가 정보 입력", description = "ID에 해당하는 사용자 정보를 수정합니다.")
     @PutMapping
     public ResponseEntity<UserResponseDTO> updateUser(@RequestBody UserUpdateDTO userUpdateDTO, HttpServletRequest request) {
         UserResponseDTO updatedUser = userService.updateUser(userUpdateDTO, request);

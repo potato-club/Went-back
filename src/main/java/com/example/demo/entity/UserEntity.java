@@ -3,15 +3,17 @@ package com.example.demo.entity;
 import com.example.demo.dto.UserResponseDTO;
 import com.example.demo.dto.UserUpdateDTO;
 import jakarta.persistence.*;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.beans.BeanUtils;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Getter
+@NoArgsConstructor
 @Table(name = "tb_user")
 public class UserEntity {
     @Id
@@ -29,60 +31,14 @@ public class UserEntity {
     @ElementCollection
     private List<Long> categoryIds;
 
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-
-    public String getSocialKey() {
-        return socialKey;
-    }
-
-    public void setSocialKey(String socialKey) {
+    @Builder
+    public UserEntity(String socialKey, String email) {
         this.socialKey = socialKey;
-    }
-
-    public String getNickname() {
-        return nickname;
-    }
-
-    public void setNickname(String nickname) {
-        this.nickname = nickname;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
         this.email = email;
     }
 
-    public LocalDate getBirthDate() {
-        return birthDate;
-    }
-
-    public void setBirthDate(LocalDate birthDate) {
-        this.birthDate = birthDate;
-    }
-
-    public String getRegion() {
-        return region;
-    }
-
-    public void setRegion(String region) {
-        this.region = region;
-    }
-
-    public List<Long> getCategoryIds() {
-        return categoryIds;
-    }
-
-    public void setCategoryIds(List<Long> categoryIds) {
-        this.categoryIds = categoryIds;
+    public UserEntity(String email) {
+        this.email = email;
     }
 
     public UserResponseDTO toUserResponseDTO() {
@@ -96,7 +52,7 @@ public class UserEntity {
         this.nickname = userUpdateDTO.getNickName();
 //        this.email = userUpdateDTO.getEmail();
         this.region = userUpdateDTO.getRegion();
-        this.categoryIds = userUpdateDTO.getCategories() != null ? userUpdateDTO.getCategories() : new ArrayList<>();
+//        this.categoryIds = userUpdateDTO.getCategories() != null ? userUpdateDTO.getCategories() : new ArrayList<>();
         return this;
     }
 }

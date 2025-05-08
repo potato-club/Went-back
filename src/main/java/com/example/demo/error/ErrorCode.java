@@ -15,8 +15,9 @@ public enum ErrorCode {
     PASSWORD_TOO_SHORT(HttpStatus.BAD_REQUEST, 4001, "Password must be at least 6 characters long"),
     UNSUPPORTED_TOKEN(HttpStatus.BAD_REQUEST, 4002, "Unsupported JWT Token"),
 
-    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, 4011, "Invalid Refresh Token"),
-    INVALID_SIGNATURE(HttpStatus.UNAUTHORIZED, 4012, "Invalid JWT Signature"),
+    INVALID_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, 4003, "Invalid Access Token"),
+    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, 4012, "Invalid Refresh Token"),
+    INVALID_SIGNATURE(HttpStatus.UNAUTHORIZED, 4013, "Invalid JWT Signature"),
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, 4014, "Expired JWT Token"),
 
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, 4040, "User Not Found"),
@@ -24,7 +25,6 @@ public enum ErrorCode {
     AUTHOR_NOT_FOUND(HttpStatus.NOT_FOUND, 4042, "Author Not Found"),
 
     USER_ALREADY_EXISTS(HttpStatus.CONFLICT, 4091, "Username already exists"),
-    BOOK_ALREADY_BORROWED(HttpStatus.CONFLICT, 4092, "Book already borrowed"),
 
     ACCESS_TOKEN_NOT_CREATED(HttpStatus.INTERNAL_SERVER_ERROR, 5001, "Acccess Token Not Created"),
     REFRESH_TOKEN_NOT_CREATED(HttpStatus.INTERNAL_SERVER_ERROR, 5002, "Refresh Token Not Created");

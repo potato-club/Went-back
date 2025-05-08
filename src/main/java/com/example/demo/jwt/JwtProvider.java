@@ -22,7 +22,6 @@ import java.security.Key;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.example.demo.jwt.JwtConstant.*;
 
@@ -153,26 +152,57 @@ public class JwtProvider {
 
         Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(authority));
 
-        UserEntity user = new UserEntity();
-        user.setEmail(username); // 이메일만 담아둠
+        UserEntity user = new UserEntity(username);
+//        user.updateEmail(username);// 이메일만 담아둠
 
         return new UsernamePasswordAuthenticationToken(user, token, authorities);
 
     }
 
     public String resolveToken(HttpServletRequest request) {
-        String accessToken = request.getHeader("Authorization");
-        String refreshToken = request.getHeader("Refresh-Token");
+        String accessToken = resolveAccessToken(request);
 
-        if(StringUtils.hasText(accessToken) && accessToken.startsWith("Bearer ")) {
-            return accessToken.substring(7);
+        if (accessToken != null) {
+            return accessToken;
         }
 
-        if (StringUtils.hasText(refreshToken)) {
+        String refreshToken = resolveRefreshToken(request);
+
+        if (refreshToken != null) {
             return refreshToken;
         }
 
-        return null;
+        throw new UnAuthorizedException("Access Token 또는 Refresh Token이 필요합니다.", ErrorCode.UNAUTHORIZED);
+    }
+
+    public String resolveAccessToken(HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+
+        if (token == null || token.isBlank() || !token.startsWith("Bearer ")) {
+            throw new UnAuthorizedException("Access Token이 존재하지 않거나, 잘못된 형식입니다.", ErrorCode.INVALID_ACCESS_TOKEN);
+        }
+
+        String accessToken = token.substring(7);
+
+        if (!validateToken(accessToken)) {
+            throw  new InvalidTokenException("Access Token이 유효하지 않습니다.", ErrorCode.INVALID_ACCESS_TOKEN);
+        }
+
+        return accessToken;
+    }
+
+    public String resolveRefreshToken(HttpServletRequest request) {
+        String refreshToken = request.getHeader("Refresh-Token");
+
+        if (refreshToken.isBlank()) {
+            throw new UnAuthorizedException("Refresh Token이 존재하지 않거나, 잘못된 형식입니다.", ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        if (!validateToken(refreshToken)) {
+            throw new InvalidTokenException("Refresh Token이 유효하지 않습니다.", ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        return refreshToken;
     }
 
     // 이메일 반환

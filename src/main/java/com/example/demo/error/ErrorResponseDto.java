@@ -11,6 +11,16 @@ public class ErrorResponseDto {
     private int statusCode;
     private String message;
 
+    public static ResponseEntity<ErrorResponseDto> toResponseEntity(BusinessException e) {
+        ErrorCode errorCode = e.getErrorCode();
+        return ResponseEntity.status(errorCode.getHttpStatus().value())
+                .body(ErrorResponseDto.builder()
+                        .httpStatus(errorCode.getHttpStatus().value())
+                        .statusCode(errorCode.getStatusCode())
+                        .message(e.getMessage())
+                        .build());
+    }
+
     public static ResponseEntity<ErrorResponseDto> toResponseEntity(ErrorCode errorCode) {
         return ResponseEntity.status(errorCode.getHttpStatus().value())
                 .body(ErrorResponseDto.builder()
@@ -19,4 +29,5 @@ public class ErrorResponseDto {
                         .message(errorCode.getMessage())
                         .build());
     }
+
 }
