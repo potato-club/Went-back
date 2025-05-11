@@ -16,7 +16,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.security.Key;
 import java.util.Collection;
@@ -51,6 +50,7 @@ public class JwtProvider {
             return Jwts.builder()
                     .setSubject(username)
                     .claim("authorities", authorities) // user
+                    .claim("type", "access")
                     .setExpiration(accessTokenExpiration)
                     .signWith(key, SignatureAlgorithm.HS256)
                     .compact();
@@ -66,6 +66,7 @@ public class JwtProvider {
 
             return Jwts.builder()
                     .setSubject(username)
+                    .claim("type", "refresh")
                     .setExpiration(refreshTokenExpiration)
                     .signWith(key, SignatureAlgorithm.HS256)
                     .compact();
@@ -93,6 +94,8 @@ public class JwtProvider {
         if (!validateToken(refreshToken)) {
             throw new InvalidTokenException("유효하지 않은 토큰입니다.", ErrorCode.INVALID_REFRESH_TOKEN);
         }
+
+        assertTokenType(refreshToken, "refresh");
 
         String username = getUsernameFromToken(refreshToken);
 
@@ -141,6 +144,10 @@ public class JwtProvider {
     }
 
     public Authentication getAuthentication(String token) {
+        if (token == null || token.isBlank() || !token.startsWith("Bearer ")) {
+            throw new UnAuthorizedException("Access Token이 존재하지 않거나, 잘못된 형식입니다.", ErrorCode.INVALID_ACCESS_TOKEN);
+        }
+
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
@@ -159,22 +166,6 @@ public class JwtProvider {
 
     }
 
-    public String resolveToken(HttpServletRequest request) {
-        String accessToken = resolveAccessToken(request);
-
-        if (accessToken != null) {
-            return accessToken;
-        }
-
-        String refreshToken = resolveRefreshToken(request);
-
-        if (refreshToken != null) {
-            return refreshToken;
-        }
-
-        throw new UnAuthorizedException("Access Token 또는 Refresh Token이 필요합니다.", ErrorCode.UNAUTHORIZED);
-    }
-
     public String resolveAccessToken(HttpServletRequest request) {
         String token = request.getHeader("Authorization");
 
@@ -188,21 +179,8 @@ public class JwtProvider {
             throw  new InvalidTokenException("Access Token이 유효하지 않습니다.", ErrorCode.INVALID_ACCESS_TOKEN);
         }
 
+        assertTokenType(accessToken, "access");
         return accessToken;
-    }
-
-    public String resolveRefreshToken(HttpServletRequest request) {
-        String refreshToken = request.getHeader("Refresh-Token");
-
-        if (refreshToken.isBlank()) {
-            throw new UnAuthorizedException("Refresh Token이 존재하지 않거나, 잘못된 형식입니다.", ErrorCode.INVALID_REFRESH_TOKEN);
-        }
-
-        if (!validateToken(refreshToken)) {
-            throw new InvalidTokenException("Refresh Token이 유효하지 않습니다.", ErrorCode.INVALID_REFRESH_TOKEN);
-        }
-
-        return refreshToken;
     }
 
     // 이메일 반환
@@ -216,4 +194,17 @@ public class JwtProvider {
         return claims.getSubject();
     }
 
+    // 토큰 타입 검증
+    private void assertTokenType(String token, String expectedTokenType) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        String tokenType = claims.get("type", String.class);
+        if (!expectedTokenType.equals(tokenType)) {
+            throw new InvalidTokenException("토큰 타입이 올바르지 않습니다.", ErrorCode.INVALID_TOKEN_TYPE);
+        }
+    }
 }

@@ -15,10 +15,11 @@ public enum ErrorCode {
     PASSWORD_TOO_SHORT(HttpStatus.BAD_REQUEST, 4001, "Password must be at least 6 characters long"),
     UNSUPPORTED_TOKEN(HttpStatus.BAD_REQUEST, 4002, "Unsupported JWT Token"),
 
-    INVALID_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, 4003, "Invalid Access Token"),
-    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, 4012, "Invalid Refresh Token"),
-    INVALID_SIGNATURE(HttpStatus.UNAUTHORIZED, 4013, "Invalid JWT Signature"),
-    EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, 4014, "Expired JWT Token"),
+    INVALID_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, 4010, "Invalid Access Token"),
+    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, 4011, "Invalid Refresh Token"),
+    INVALID_SIGNATURE(HttpStatus.UNAUTHORIZED, 4012, "Invalid JWT Signature"),
+    EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, 4013, "Expired JWT Token"),
+    INVALID_TOKEN_TYPE(HttpStatus.UNAUTHORIZED, 4014, "Invalid Token Type"),
 
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, 4040, "User Not Found"),
     BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, 4041, "Book Not Found"),

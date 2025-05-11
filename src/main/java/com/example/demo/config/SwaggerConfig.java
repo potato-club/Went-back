@@ -22,8 +22,8 @@ public class SwaggerConfig {
 
     private SecurityScheme createRefreshTokenScheme() {
         return new SecurityScheme()
-                .type(SecurityScheme.Type.HTTP)
-                .bearerFormat("JWT")
+                .type(SecurityScheme.Type.APIKEY)
+                .in(SecurityScheme.In.HEADER)
                 .name("Refresh-Token");
     }
 
@@ -35,7 +35,6 @@ public class SwaggerConfig {
             openApi.addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
 
             openApi.schemaRequirement("refreshToken", createRefreshTokenScheme());
-            openApi.addSecurityItem(new SecurityRequirement().addList("refreshToken"));
 
             openApi.addServersItem(new Server()
                     .url("https://went_back.gamza.club")

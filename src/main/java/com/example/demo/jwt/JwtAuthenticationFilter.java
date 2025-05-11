@@ -1,5 +1,7 @@
 package com.example.demo.jwt;
 
+import com.example.demo.error.InvalidTokenException;
+import com.example.demo.error.UnAuthorizedException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
@@ -29,11 +31,10 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
         try {
             String accessToken = jwtProvider.resolveAccessToken(httpRequest);
-
             Authentication authentication = jwtProvider.getAuthentication(accessToken);
             SecurityContextHolder.getContext().setAuthentication(authentication);
             chain.doFilter(request, response);
-        } catch (Exception e) {
+        } catch (InvalidTokenException | UnAuthorizedException e) {
             HttpServletResponse httpServletResponse = (HttpServletResponse) response;
             httpServletResponse.setContentType("application/json");
             httpServletResponse.setCharacterEncoding("UTF-8");

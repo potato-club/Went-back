@@ -93,9 +93,7 @@ public class UserServiceImpl implements UserService {
     }
 
     // 토큰 재발급
-    public void reissueToken(HttpServletRequest request, HttpServletResponse response) {
-        String refreshToken = jwtProvider.resolveRefreshToken(request);
-
+    public void reissueToken(HttpServletResponse response, String refreshToken) {
         if (refreshToken == null || refreshToken.isBlank()) {
             throw new InvalidTokenException("Refresh Token이 존재하지 않습니다.", ErrorCode.INVALID_REFRESH_TOKEN);
         }

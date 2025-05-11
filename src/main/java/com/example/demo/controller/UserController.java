@@ -7,6 +7,7 @@ import com.example.demo.dto.UserUpdateDTO;
 import com.example.demo.service.UserService;
 import com.example.demo.service.impl.UserServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -64,10 +65,10 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "토큰 재발급", description = "AT, RT를 재발급합니다.")
+    @Operation(summary = "토큰 재발급", description = "AT, RT를 재발급합니다.", security = @SecurityRequirement(name = ""))
     @PostMapping("/reissue")
-    public ResponseEntity<Void> reissueToken(HttpServletRequest request, HttpServletResponse response) {
-        userService.reissueToken(request, response);
+    public ResponseEntity<Void> reissueToken(HttpServletResponse response, @RequestHeader("Refresh-Token") String refreshToken) {
+        userService.reissueToken(response, refreshToken);
         return ResponseEntity.noContent().build();
     }
 }

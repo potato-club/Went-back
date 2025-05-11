@@ -18,5 +18,5 @@ public interface UserService {
     UserResponseDTO findUser(UserUniqueDTO userUniqueDTO);
     UserResponseDTO updateUser(UserUpdateDTO userUpdateDTO, HttpServletRequest request);
     void deleteUser(Long id);
-    void reissueToken(jakarta.servlet.http.HttpServletRequest request, HttpServletResponse response);
+    void reissueToken(HttpServletResponse response, String refreshToken);
 }
