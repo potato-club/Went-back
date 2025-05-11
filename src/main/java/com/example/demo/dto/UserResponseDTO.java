@@ -62,4 +62,3 @@ public class UserResponseDTO {
         this.categoryIds = categoryIds;
     }
 }
-

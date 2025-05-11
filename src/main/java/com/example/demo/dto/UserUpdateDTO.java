@@ -12,9 +12,8 @@ import java.util.List;
 @Data
 @Getter
 public class UserUpdateDTO {
-//    @NotBlank(message = "socialKey ( social login key ) is required value.")
-//    private String socialKey;
-    
+    @NotBlank(message = "socialKey ( social login key ) is required value.")
+    private String socialKey;
     @NotBlank(message = "email is required value.")
     private String email;
 

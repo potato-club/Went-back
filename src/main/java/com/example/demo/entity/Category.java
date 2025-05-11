@@ -38,4 +38,3 @@ public class Category implements Serializable {
         this.koName = koName;
     }
 }
-
