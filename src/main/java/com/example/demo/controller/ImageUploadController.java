@@ -2,11 +2,13 @@ package com.example.demo.controller;
 
 import com.example.demo.service.S3Service;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+@Tag(name = "Photo API", description = "사진 관련 API")
 @RestController
 @RequestMapping("/api")
 public class ImageUploadController {
