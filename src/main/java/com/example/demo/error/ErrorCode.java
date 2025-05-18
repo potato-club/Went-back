@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 public enum ErrorCode {
+    USER_ALREADY_EXISTS(HttpStatus.CONFLICT, 4091, "이미 등록된 사용자입니다."),
     RUNTIME_EXCEPTION(HttpStatus.BAD_REQUEST, 400, "Bad Request"),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, 401, "Unauthorized"),
     FORBIDDEN(HttpStatus.FORBIDDEN, 403, "Forbidden"),
@@ -23,7 +24,7 @@ public enum ErrorCode {
     BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, 4041, "Book Not Found"),
     AUTHOR_NOT_FOUND(HttpStatus.NOT_FOUND, 4042, "Author Not Found"),
 
-    USER_ALREADY_EXISTS(HttpStatus.CONFLICT, 4091, "Username already exists"),
+//    USER_ALREADY_EXISTS(HttpStatus.CONFLICT, 4091, "Username already exists"),
     BOOK_ALREADY_BORROWED(HttpStatus.CONFLICT, 4092, "Book already borrowed"),
 
     ACCESS_TOKEN_NOT_CREATED(HttpStatus.INTERNAL_SERVER_ERROR, 5001, "Acccess Token Not Created"),

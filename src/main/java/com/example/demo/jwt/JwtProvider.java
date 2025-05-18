@@ -2,85 +2,66 @@ package com.example.demo.jwt;
 
 import com.example.demo.entity.UserEntity;
 import com.example.demo.error.*;
+import com.example.demo.redis.RefreshToken;
+import com.example.demo.redis.RefreshTokenRepository;
 import com.example.demo.repository.UserRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.security.Key;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.*;
 
 import static com.example.demo.jwt.JwtConstant.*;
 
 @Slf4j
 @Component
 public class JwtProvider {
-    private final Key key;
+
     private final UserRepository userRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final String secretKey;
+    private Key key;
 
-    public JwtProvider(@Value("${jwt.secretKey}") String secretKey, UserRepository userRepository) {
-        secretKey = secretKey.trim();
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-
-        if (keyBytes.length != 32) { // HMAC SHA256은 32바이트 필요
-            throw new IllegalArgumentException("Invalid key length: " + keyBytes.length);
-        }
-
-        this.key = Keys.hmacShaKeyFor(keyBytes);
+    public JwtProvider(
+            @Value("${jwt.secretKey}") String secretKey,
+            UserRepository userRepository,
+            RefreshTokenRepository refreshTokenRepository
+    ) {
+        this.secretKey = secretKey;
         this.userRepository = userRepository;
+        this.refreshTokenRepository = refreshTokenRepository;
     }
 
-    public String createAccessToken(String username, String authorities) {
-        try {
-            long now = (new Date()).getTime();
-            Date accessTokenExpiration = new Date(now + ACCESS_TOKEN_EXPIRE_TIME);
-
-            return Jwts.builder()
-                    .setSubject(username)
-                    .claim("authorities", authorities) // user
-                    .setExpiration(accessTokenExpiration)
-                    .signWith(key, SignatureAlgorithm.HS256)
-                    .compact();
-        } catch (JwtException e) {
-            throw new TokenCreationException("Access Token이 생성되지 않았습니다.", ErrorCode.ACCESS_TOKEN_NOT_CREATED);
+    @PostConstruct
+    protected void init() {
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey.trim());
+        if (keyBytes.length != 32) {
+            throw new IllegalArgumentException("JWT secret key must be 32 bytes");
         }
-    }
-
-    public String createRefreshToken(String username) {
-        try {
-            long now = (new Date()).getTime();
-            Date refreshTokenExpiration = new Date(now + REFRESH_TOKEN_EXPIRE_TIME);
-
-            return Jwts.builder()
-                    .setSubject(username)
-                    .setExpiration(refreshTokenExpiration)
-                    .signWith(key, SignatureAlgorithm.HS256)
-                    .compact();
-        } catch (JwtException e) {
-            throw new TokenCreationException("Refresh Token이 생성되지 않았습니다.", ErrorCode.REFRESH_TOKEN_NOT_CREATED);
-        }
+        this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
     public JwtToken issueToken(UserEntity user) {
-        String username = user.getEmail();
-        String authorities = "user"; // 일단 권한 정보 X
+        String email = user.getEmail();
+        String accessToken = createAccessToken(email, "user");
+        String refreshToken = createRefreshToken(email);
 
-        String accessToken = createAccessToken(username, authorities);
-        String refreshToken = createRefreshToken(username);
+        refreshTokenRepository.save(RefreshToken.builder()
+                .email(email)
+                .token(refreshToken)
+                .build());
 
         return JwtToken.builder()
                 .grantType(GRANT_TYPE)
@@ -89,25 +70,63 @@ public class JwtProvider {
                 .build();
     }
 
-
     public JwtToken reissueToken(String refreshToken) {
-        if (!validateToken(refreshToken)) {
-            throw new InvalidTokenException("유효하지 않은 토큰입니다.", ErrorCode.INVALID_REFRESH_TOKEN);
+        validateToken(refreshToken);
+        String email = getUsernameFromToken(refreshToken);
+
+        RefreshToken storedToken = refreshTokenRepository.findById(email)
+                .orElseThrow(() -> new UnAuthorizedException("저장된 리프레시 토큰이 없습니다.", ErrorCode.INVALID_REFRESH_TOKEN));
+
+        if (!storedToken.getToken().equals(refreshToken)) {
+            throw new UnAuthorizedException("리프레시 토큰이 일치하지 않습니다.", ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
-        String username = getUsernameFromToken(refreshToken);
-
-        UserEntity user = userRepository.findByEmail(username)
+        UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UnAuthorizedException("존재하지 않는 사용자입니다.", ErrorCode.USER_NOT_FOUND));
 
-        String newAccessToken = createAccessToken(username, "user"); // role 없음
-        String newRefreshToken = createRefreshToken(username);
+        String newAccessToken = createAccessToken(email, "user");
+        String newRefreshToken = createRefreshToken(email);
+
+        storedToken.setToken(newRefreshToken);
+        refreshTokenRepository.save(storedToken);
 
         return JwtToken.builder()
                 .grantType(GRANT_TYPE)
                 .accessToken(newAccessToken)
                 .refreshToken(newRefreshToken)
                 .build();
+    }
+
+    public void logout(String refreshToken) {
+        validateToken(refreshToken);
+        String email = getUsernameFromToken(refreshToken);
+        refreshTokenRepository.deleteById(email);
+        log.info("RefreshToken 로그아웃 및 삭제 완료: {}", email);
+    }
+
+    public String createAccessToken(String username, String authorities) {
+        try {
+            return Jwts.builder()
+                    .setSubject(username)
+                    .claim("authorities", authorities)
+                    .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRE_TIME))
+                    .signWith(key, SignatureAlgorithm.HS256)
+                    .compact();
+        } catch (JwtException e) {
+            throw new TokenCreationException("Access Token 생성 실패", ErrorCode.ACCESS_TOKEN_NOT_CREATED);
+        }
+    }
+
+    public String createRefreshToken(String username) {
+        try {
+            return Jwts.builder()
+                    .setSubject(username)
+                    .setExpiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRE_TIME))
+                    .signWith(key, SignatureAlgorithm.HS256)
+                    .compact();
+        } catch (JwtException e) {
+            throw new TokenCreationException("Refresh Token 생성 실패", ErrorCode.REFRESH_TOKEN_NOT_CREATED);
+        }
     }
 
     public void setHeaderAccessToken(HttpServletResponse response, String accessToken) {
@@ -118,72 +137,54 @@ public class JwtProvider {
         response.setHeader("Refresh-Token", refreshToken);
     }
 
-    public boolean validateToken(String refreshToken) {
+    public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(refreshToken);
+            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
         } catch (IllegalArgumentException | MalformedJwtException e) {
-            log.info("형식에 맞지 않는 토큰입니다.", e);
-            throw new BadRequestException("잘못된 토큰 형식입니다.", ErrorCode.UNSUPPORTED_TOKEN); // 400
+            throw new BadRequestException("잘못된 토큰 형식입니다.", ErrorCode.UNSUPPORTED_TOKEN);
         } catch (SecurityException e) {
-            log.info("유효하지 않는 JWT 서명입니다.", e);
-            throw new UnAuthorizedException("잘못된 JWT 시그니처입니다.", ErrorCode.INVALID_SIGNATURE); // 401
+            throw new UnAuthorizedException("유효하지 않은 JWT 서명입니다.", ErrorCode.INVALID_SIGNATURE);
         } catch (ExpiredJwtException e) {
-            log.info("만료된 토큰입니다.", e);
-            throw new UnAuthorizedException("인증이 만료된 토큰입니다.", ErrorCode.EXPIRED_TOKEN); // 401
+            throw new UnAuthorizedException("만료된 토큰입니다.", ErrorCode.EXPIRED_TOKEN);
         } catch (UnsupportedJwtException e) {
-            log.info("지원되지 않는 JWT 형식입니다.", e);
-            throw new UnAuthorizedException("지원되지 않는 토큰입니다.", ErrorCode.UNSUPPORTED_TOKEN); // 401
+            throw new UnAuthorizedException("지원되지 않는 토큰입니다.", ErrorCode.UNSUPPORTED_TOKEN);
         }
-
     }
 
     public Authentication getAuthentication(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-
+        Claims claims = parseClaims(token);
         String username = claims.getSubject();
-        String authority = (String) claims.get("authorities"); // user
+        String authority = (String) claims.get("authorities");
 
         Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(authority));
 
         UserEntity user = new UserEntity();
-        user.setEmail(username); // 이메일만 담아둠
-
+        user.setEmail(username);
         return new UsernamePasswordAuthenticationToken(user, token, authorities);
-
     }
 
-    public String resolveToken(HttpServletRequest request) {
-        String accessToken = request.getHeader("Authorization");
-        String refreshToken = request.getHeader("Refresh-Token");
-
-        if(StringUtils.hasText(accessToken) && accessToken.startsWith("Bearer ")) {
-            return accessToken.substring(7);
+    public String resolveAccessToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
         }
-
-        if (StringUtils.hasText(refreshToken)) {
-            return refreshToken;
-        }
-
         return null;
     }
 
-    // 이메일 반환
+    public String resolveRefreshToken(HttpServletRequest request) {
+        return request.getHeader("Refresh-Token");
+    }
+
     public String getUsernameFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
+        return parseClaims(token).getSubject();
+    }
+
+    private Claims parseClaims(String token) {
+        return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-
-        return claims.getSubject();
     }
-
 }
