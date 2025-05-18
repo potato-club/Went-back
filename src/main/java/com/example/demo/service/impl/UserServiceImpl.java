@@ -67,7 +67,11 @@ public class UserServiceImpl implements UserService {
         return userEntity != null ? userEntity.toUserResponseDTO() : null;
     }
 
-    // 추가 정보 입력
+//    public UserResponseDTO getMyProfile(HttpServletRequest request) {
+//        UserEntity user = findUserByAccessToken(request);
+//        return user.toUserResponseDTO();
+//    }
+
     public UserResponseDTO updateUser(UserUpdateDTO userDTO, HttpServletRequest request) {
         UserEntity user = findUserByAccessToken(request);
         user.updateByDto(userDTO);
@@ -75,8 +79,9 @@ public class UserServiceImpl implements UserService {
         return result.toUserResponseDTO();
     }
 
-    public void deleteUser(Long id) {
-        userRepository.deleteById(id);
+    public void deleteUser(HttpServletRequest request) {
+        UserEntity user = findUserByAccessToken(request);
+        userRepository.delete(user);
     }
 
     private UserEntity findUserByAccessToken(HttpServletRequest request) {

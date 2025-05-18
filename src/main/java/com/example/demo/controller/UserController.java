@@ -49,17 +49,23 @@ public class UserController {
         return userDTO != null ? ResponseEntity.ok(userDTO) : ResponseEntity.notFound().build();
     }
 
-    @Operation(summary = "사용자 추가 정보 입력", description = "ID에 해당하는 사용자 정보를 수정합니다.")
+//    @Operation(summary = "내 프로필 조회", description = "사용자 프로필을 조회합니다.")
+//    @GetMapping("/me")
+//    public ResponseEntity<UserResponseDTO> getMyProfile(HttpServletRequest request) {
+//        return ResponseEntity.ok(userService.getMyProfile(request));
+//    }
+
+    @Operation(summary = "사용자 추가 정보 입력", description = "사용자 정보를 수정합니다.")
     @PutMapping
     public ResponseEntity<UserResponseDTO> updateUser(@RequestBody UserUpdateDTO userUpdateDTO, HttpServletRequest request) {
         UserResponseDTO updatedUser = userService.updateUser(userUpdateDTO, request);
         return updatedUser != null ? ResponseEntity.ok(updatedUser) : ResponseEntity.notFound().build();
     }
 
-    @Operation(summary = "사용자 삭제", description = "ID에 해당하는 사용자를 삭제합니다.")
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
+    @Operation(summary = "사용자 삭제", description = "로그인된 사용자를 삭제합니다.")
+    @DeleteMapping
+    public ResponseEntity<Void> deleteUser(HttpServletRequest request) {
+        userService.deleteUser(request);
         return ResponseEntity.noContent().build();
     }
 
