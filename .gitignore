@@ -36,8 +36,7 @@ out/
 ### VS Code ###
 .vscode/
 
-# Exclude all .yml files
-*.yml
+!application.yml
 
 .DS_Store
 ._.DS_Store
