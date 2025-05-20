@@ -1,7 +1,6 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.UserCreationDTO;
-import com.example.demo.dto.UserResponseDTO;
+import com.example.demo.dto.response.UserResponseDTO;
 import com.example.demo.dto.UserUniqueDTO;
 import com.example.demo.dto.UserUpdateDTO;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,11 +11,11 @@ import java.util.List;
 
 @Service
 public interface UserService {
-    UserResponseDTO createUser(UserCreationDTO userDTO, HttpServletResponse response);
+//    UserResponseDTO createUser(UserCreationDTO userDTO, HttpServletResponse response);
     List<UserResponseDTO> getAllUsers();
     UserResponseDTO getUser(Long id);
     UserResponseDTO findUser(UserUniqueDTO userUniqueDTO);
     UserResponseDTO updateUser(UserUpdateDTO userUpdateDTO, HttpServletRequest request);
-    void deleteUser(Long id);
+    void deleteUser(HttpServletRequest request);
     void reissueToken(HttpServletResponse response, String refreshToken);
 }

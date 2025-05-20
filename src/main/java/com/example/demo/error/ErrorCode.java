@@ -20,6 +20,7 @@ public enum ErrorCode {
     INVALID_SIGNATURE(HttpStatus.UNAUTHORIZED, 4012, "Invalid JWT Signature"),
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, 4013, "Expired JWT Token"),
     INVALID_TOKEN_TYPE(HttpStatus.UNAUTHORIZED, 4014, "Invalid Token Type"),
+    INVALID_SOCIAL_TOKEN(HttpStatus.UNAUTHORIZED, 4015, "Invalid social login token"),
 
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, 4040, "User Not Found"),
     BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, 4041, "Book Not Found"),
@@ -28,7 +29,9 @@ public enum ErrorCode {
     USER_ALREADY_EXISTS(HttpStatus.CONFLICT, 4091, "Username already exists"),
 
     ACCESS_TOKEN_NOT_CREATED(HttpStatus.INTERNAL_SERVER_ERROR, 5001, "Acccess Token Not Created"),
-    REFRESH_TOKEN_NOT_CREATED(HttpStatus.INTERNAL_SERVER_ERROR, 5002, "Refresh Token Not Created");
+    REFRESH_TOKEN_NOT_CREATED(HttpStatus.INTERNAL_SERVER_ERROR, 5002, "Refresh Token Not Created"),
+
+    EXTERNAL_AUTH_PROVIDER_ERROR(HttpStatus.BAD_GATEWAY, 5020, "External authentication provider error");
 
     private final HttpStatus httpStatus;
     private final int statusCode;

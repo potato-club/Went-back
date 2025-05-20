@@ -1,7 +1,6 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.UserCreationDTO;
-import com.example.demo.dto.UserResponseDTO;
+import com.example.demo.dto.response.UserResponseDTO;
 import com.example.demo.dto.UserUniqueDTO;
 import com.example.demo.dto.UserUpdateDTO;
 import com.example.demo.service.UserService;
@@ -23,11 +22,11 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
 
-    @Operation(summary = "사용자 등록", description = "새로운 사용자를 등록합니다.")
-    @PostMapping
-    public ResponseEntity<UserResponseDTO> createUser(@RequestBody UserCreationDTO userDTO, HttpServletResponse response) {
-        return ResponseEntity.ok(userService.createUser(userDTO, response));
-    }
+//    @Operation(summary = "사용자 등록", description = "새로운 사용자를 등록합니다.")
+//    @PostMapping
+//    public ResponseEntity<UserResponseDTO> createUser(@RequestBody UserCreationDTO userDTO, HttpServletResponse response) {
+//        return ResponseEntity.ok(userService.createUser(userDTO, response));
+//    }
 
     @Operation(summary = "전체 사용자 조회", description = "등록된 모든 사용자를 조회합니다.")
     @GetMapping
@@ -48,12 +47,6 @@ public class UserController {
         UserResponseDTO userDTO = userService.findUser(userUniqueDTO);
         return userDTO != null ? ResponseEntity.ok(userDTO) : ResponseEntity.notFound().build();
     }
-
-//    @Operation(summary = "내 프로필 조회", description = "사용자 프로필을 조회합니다.")
-//    @GetMapping("/me")
-//    public ResponseEntity<UserResponseDTO> getMyProfile(HttpServletRequest request) {
-//        return ResponseEntity.ok(userService.getMyProfile(request));
-//    }
 
     @Operation(summary = "사용자 추가 정보 입력", description = "사용자 정보를 수정합니다.")
     @PutMapping

@@ -1,7 +1,6 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.dto.UserCreationDTO;
-import com.example.demo.dto.UserResponseDTO;
+import com.example.demo.dto.response.UserResponseDTO;
 import com.example.demo.dto.UserUniqueDTO;
 import com.example.demo.dto.UserUpdateDTO;
 import com.example.demo.entity.UserEntity;
@@ -12,7 +11,6 @@ import com.example.demo.repository.UserRepository;
 import com.example.demo.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,27 +23,25 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final JwtProvider jwtProvider;
 
-    @Transactional
-    public UserResponseDTO createUser(UserCreationDTO userDTO, HttpServletResponse response) {
-        if (userRepository.existsByEmail(userDTO.getEmail()) || userRepository.existsBySocialKey(userDTO.getSocialKey())) {
-            throw new ConflictException("이미 존재하는 사용자입니다.", ErrorCode.USER_ALREADY_EXISTS);
-        }
-        
-        UserEntity userEntity = UserEntity.builder()
-                .socialKey(userDTO.getSocialKey())
-                .email(userDTO.getEmail())
-                .build();
-        
-        UserEntity result = userRepository.save(userEntity);
-
-        // 소셜 키 검증
-
-        JwtToken jwtToken = jwtProvider.issueToken(result);
-        jwtProvider.setHeaderAccessToken(response, jwtToken.getAccessToken());
-        jwtProvider.setHeaderRefreshToken(response, jwtToken.getRefreshToken());
-
-        return result.toUserResponseDTO();
-    }
+//    @Transactional
+//    public UserResponseDTO createUser(UserCreationDTO userDTO, HttpServletResponse response) {
+//        if (userRepository.existsByEmail(userDTO.getEmail()) || userRepository.existsBySocialKey(userDTO.getSocialKey())) {
+//            throw new ConflictException("이미 존재하는 사용자입니다.", ErrorCode.USER_ALREADY_EXISTS);
+//        }
+//
+//        UserEntity userEntity = UserEntity.builder()
+//                .socialKey(userDTO.getSocialKey())
+//                .email(userDTO.getEmail())
+//                .build();
+//
+//        UserEntity result = userRepository.save(userEntity);
+//
+//        JwtToken jwtToken = jwtProvider.issueToken(result);
+//        jwtProvider.setHeaderAccessToken(response, jwtToken.getAccessToken());
+//        jwtProvider.setHeaderRefreshToken(response, jwtToken.getRefreshToken());
+//
+//        return result.toUserResponseDTO();
+//    }
 
     public List<UserResponseDTO> getAllUsers() {
         return userRepository.findAll().stream()
@@ -66,11 +62,6 @@ public class UserServiceImpl implements UserService {
         UserEntity userEntity = listResult.get(0);
         return userEntity != null ? userEntity.toUserResponseDTO() : null;
     }
-
-//    public UserResponseDTO getMyProfile(HttpServletRequest request) {
-//        UserEntity user = findUserByAccessToken(request);
-//        return user.toUserResponseDTO();
-//    }
 
     public UserResponseDTO updateUser(UserUpdateDTO userDTO, HttpServletRequest request) {
         UserEntity user = findUserByAccessToken(request);

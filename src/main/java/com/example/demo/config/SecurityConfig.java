@@ -50,6 +50,7 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/api/users").permitAll()
                 .requestMatchers("/api/users/reissue").permitAll()
+                .requestMatchers("/api/auth/google").permitAll()
                 .anyRequest().authenticated());
 
         http.addFilterAfter(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class);

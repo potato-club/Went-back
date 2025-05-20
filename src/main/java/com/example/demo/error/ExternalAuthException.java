@@ -1,7 +1,7 @@
 package com.example.demo.error;
 
-public class ExternalAuthException extends RuntimeException {
-  public ExternalAuthException(String message) {
-    super(message);
-  }
+public class ExternalAuthException extends BusinessException {
+    public ExternalAuthException(String message, ErrorCode errorCode) {
+        super(message, errorCode);
+    }
 }

@@ -29,6 +29,11 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
             return;
         }
 
+        if (requestURI.equals("/api/auth/google")) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         try {
             String accessToken = jwtProvider.resolveAccessToken(httpRequest);
             Authentication authentication = jwtProvider.getAuthentication(accessToken);
