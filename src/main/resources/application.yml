@@ -4,6 +4,8 @@ server:
     port: 6379
   port: 80
 spring:
+  config:
+    import: optional:file:.env[.properties]
   datasource:
     url: jdbc:mariadb://${DB_HOST}:${DB_PORT}/${DB_NAME}
     username: ${DB_USER}
@@ -41,3 +43,10 @@ jwt:
   accessExpiration: 3600000 # 30000  #
   refreshExpiration: 604800000 # 60000 #
   aesKey: ${JWT_AES_KEY}
+
+app:
+  google:
+    client:
+      id: ${GOOGLE_CLIENT_ID}
+
+
