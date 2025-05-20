@@ -59,7 +59,7 @@ public class SwaggerConfig {
                 .group("all")
                 .pathsToMatch("/**")
                 .displayName("다녀왔습니다 API")
-                .addOpenApiCustomizer(createOpenApiCustomizer("다녀왔습니다", "v0.1"))
+                .addOpenApiCustomizer(createOpenApiCustomizer("다녀왔습니다", "v0.2"))
                 .build();
     }
 }

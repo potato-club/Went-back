@@ -1,0 +1,43 @@
+server:
+  redis:
+    host: host.docker.internal
+    port: 6379
+  port: 80
+spring:
+  datasource:
+    url: jdbc:mariadb://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    username: ${DB_USER}
+    password: ${DB_PASS}
+    driver-class-name: org.mariadb.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+      hibernate:
+        enable_lazy_load_no_trans: true
+        show_sql: true
+        format_sql: true
+        #        dialect: org.hibernate.dialect.MySQLDialect
+        transaction.jta.platform: org.hibernate.service.jta.JtaPlatform
+    open-in-view: false
+
+cloud:
+  aws:
+    s3:
+      bucket: went-back
+    credentials:
+      access-key: ${AWS_ACCESS_KEY}
+      secret-key: ${AWS_SECRET_KEY}
+    region:
+      static: ap-northeast-2
+    stack:
+      auto: false
+
+jwt:
+  secretKey: ${JWT_SECRET_KEY}
+  playerTokenExpiration: 60000 # 60 * 1000  #
+  accessExpiration: 3600000 # 30000  #
+  refreshExpiration: 604800000 # 60000 #
+  aesKey: ${JWT_AES_KEY}

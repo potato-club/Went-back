@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  redis:
+    image: redis:7.2
+    container_name: went-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: went-backend
+    ports:
+      - "8080:80"
+    depends_on:
+      - redis
+    env_file:
+      - .env
+    restart: unless-stopped

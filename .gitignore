@@ -36,11 +36,14 @@ out/
 ### VS Code ###
 .vscode/
 
-# Exclude all .yml files
-*.yml
+!application.yml
 
 .DS_Store
 ._.DS_Store
 **/.DS_Store
 **/._.DS_Store
 
+# 환경 변수 파일 (보안)
+.env
+
+/Dockerfile
