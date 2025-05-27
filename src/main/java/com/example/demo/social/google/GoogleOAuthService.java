@@ -30,6 +30,7 @@ public class GoogleOAuthService {
         if (user == null) {
             // 신규 회원
             isNewUser = true;
+
             user = UserEntity.builder()
                     .socialKey(googleUserInfo.getUserId())
                     .email(googleUserInfo.getEmail())

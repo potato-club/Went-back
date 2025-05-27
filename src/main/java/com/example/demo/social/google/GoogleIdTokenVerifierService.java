@@ -13,11 +13,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
-import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class GoogleIdTokenVerifierService {
 
     @Value("${oauth.google.client-id}")
@@ -38,9 +36,7 @@ public class GoogleIdTokenVerifierService {
 
             return new GoogleUserInfo(
                     payload.getSubject(), // sub == 고유 ID == socialKey
-                    payload.getEmail(),
-                    (String) payload.get("name"),
-                    (String) payload.get("picture")
+                    payload.getEmail()
             );
         } catch (Exception e) {
             throw new ExternalAuthException("Google ID Token 검증 실패", ErrorCode.EXTERNAL_AUTH_PROVIDER_ERROR);

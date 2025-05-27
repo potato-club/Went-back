@@ -1,10 +1,10 @@
 package com.example.demo.social.google.dto;
 
-import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-@Data
 @Getter
+@NoArgsConstructor
 public class GoogleLoginDTO {
-    private String IdToken;
+    private String idToken;
 }

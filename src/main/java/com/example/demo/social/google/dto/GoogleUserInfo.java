@@ -8,6 +8,4 @@ import lombok.Getter;
 public class GoogleUserInfo {
     private String userId;
     private String email;
-    private String name;
-    private String pictureUrl;
 }
