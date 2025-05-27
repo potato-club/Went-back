@@ -1,4 +1,4 @@
-package com.example.demo.dto.request;
+package com.example.demo.social.google.dto;
 
 import lombok.Data;
 import lombok.Getter;

@@ -44,6 +44,6 @@ out/
 **/._.DS_Store
 
 # 환경 변수 파일 (보안)
-.env
+*.env
 
 /Dockerfile

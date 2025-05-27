@@ -3,6 +3,7 @@ package com.example.demo.social.google;
 import com.example.demo.error.ErrorCode;
 import com.example.demo.error.ExternalAuthException;
 import com.example.demo.error.InvalidTokenException;
+import com.example.demo.social.google.dto.GoogleUserInfo;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -19,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class GoogleIdTokenVerifierService {
 
-    @Value("${app.google.client.id}")
+    @Value("${oauth.google.client-id}")
     private String googleClientId;
 
     public GoogleUserInfo verify(String idTokenString) {

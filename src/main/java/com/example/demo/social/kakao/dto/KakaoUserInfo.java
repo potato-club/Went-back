@@ -1,13 +1,11 @@
-package com.example.demo.social.google;
+package com.example.demo.social.kakao.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class GoogleUserInfo {
+public class KakaoUserInfo {
     private String userId;
     private String email;
-    private String name;
-    private String pictureUrl;
 }
