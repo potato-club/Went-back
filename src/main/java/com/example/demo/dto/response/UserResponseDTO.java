@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Builder
@@ -18,4 +19,5 @@ public class UserResponseDTO {
     private String email;
     private LocalDate birthDate;
     private String region;
+    private List<Long> categoryIds;
 }
