@@ -4,7 +4,7 @@ import com.example.demo.dto.PostCategoryDTO;
 import com.example.demo.service.PostCategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,11 +12,10 @@ import java.util.List;
 
 @Tag(name = "PostCategory API", description = "게시글-카테고리 연결 관련 API")
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/post-categories")
 public class PostCategoryController {
-
-    @Autowired
-    private PostCategoryService postCategoryService;
+    private final PostCategoryService postCategoryService;
 
     @Operation(summary = "게시글-카테고리 연결 생성", description = "게시글과 카테고리를 연결합니다.")
     @PostMapping
@@ -37,13 +36,13 @@ public class PostCategoryController {
         return postCategoryDTO != null ? ResponseEntity.ok(postCategoryDTO) : ResponseEntity.notFound().build();
     }
 
-    @Operation(summary = "연결 수정", description = "ID에 해당하는 게시글-카테고리 연결 정보를 수정합니다.")
-    @PutMapping("/{id}")
-    public ResponseEntity<PostCategoryDTO> updatePostCategory(@PathVariable Long id, @RequestBody PostCategoryDTO postCategoryDTO) {
-        postCategoryDTO.setPostCategoryId(id);
-        PostCategoryDTO updatedPostCategory = postCategoryService.updatePostCategory(postCategoryDTO);
-        return updatedPostCategory != null ? ResponseEntity.ok(updatedPostCategory) : ResponseEntity.notFound().build();
-    }
+//    @Operation(summary = "연결 수정", description = "ID에 해당하는 게시글-카테고리 연결 정보를 수정합니다.")
+//    @PutMapping("/{id}")
+//    public ResponseEntity<PostCategoryDTO> updatePostCategory(@PathVariable Long id, @RequestBody PostCategoryDTO postCategoryDTO) {
+//        postCategoryDTO.setPostCategoryId(id);
+//        PostCategoryDTO updatedPostCategory = postCategoryService.updatePostCategory(postCategoryDTO);
+//        return updatedPostCategory != null ? ResponseEntity.ok(updatedPostCategory) : ResponseEntity.notFound().build();
+//    }
 
     @Operation(summary = "연결 삭제", description = "ID에 해당하는 게시글-카테고리 연결을 삭제합니다.")
     @DeleteMapping("/{id}")

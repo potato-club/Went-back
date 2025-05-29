@@ -1,11 +1,13 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.PostDTO;
+import com.example.demo.dto.request.PostCreationDTO;
+import com.example.demo.dto.request.PostUpdateDTO;
+import com.example.demo.dto.response.PostResponseDTO;
 import com.example.demo.dto.PostListDTO;
 import com.example.demo.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,30 +21,29 @@ import java.util.List;
 
 @Tag(name = "Post API", description = "게시글 관련 API")
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/posts")
 public class PostController {
-
-    @Autowired
-    private PostService postService;
+    private final PostService postService;
 
     @Operation(summary = "게시글 작성 (파일 업로드 포함)")
     @PostMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-    public ResponseEntity<PostDTO> createPost(
-            @RequestPart("post") PostDTO postDTO,
+    public ResponseEntity<PostResponseDTO> createPost(
+            @RequestPart("post") PostCreationDTO postCreationDTO,
             @RequestPart(value = "files", required = false) List<MultipartFile> multipartFiles) {
-        PostDTO created = postService.createPost(postDTO, multipartFiles);
-        return ResponseEntity.ok(created);
+        PostResponseDTO newPost = postService.createPost(postCreationDTO, multipartFiles);
+        return ResponseEntity.ok(newPost);
     }
 
     @Operation(summary = "전체 게시글 조회")
     @GetMapping
-    public ResponseEntity<List<PostDTO>> getAllPosts() {
+    public ResponseEntity<List<PostResponseDTO>> getAllPosts() {
         return ResponseEntity.ok(postService.getAllPosts());
     }
 
     @Operation(summary = "게시글 페이지네이션 조회")
     @GetMapping("/page")
-    public ResponseEntity<Page<PostDTO>> getPagedPosts(
+    public ResponseEntity<Page<PostResponseDTO>> getPagedPosts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "8") int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -73,20 +74,19 @@ public class PostController {
 
     @Operation(summary = "게시글 단건 조회")
     @GetMapping("/{id}")
-    public ResponseEntity<PostDTO> getPost(@PathVariable Long id) {
-        PostDTO postDTO = postService.getPost(id);
-        return postDTO != null ? ResponseEntity.ok(postDTO) : ResponseEntity.notFound().build();
+    public ResponseEntity<PostResponseDTO> getPost(@PathVariable Long id) {
+        PostResponseDTO postResponseDTO = postService.getPost(id);
+        return postResponseDTO != null ? ResponseEntity.ok(postResponseDTO) : ResponseEntity.notFound().build();
     }
 
     @Operation(summary = "게시글 수정 (파일 포함)")
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<PostDTO> updatePost(
+    public ResponseEntity<PostResponseDTO> updatePost(
             @PathVariable Long id,
-            @RequestPart("post") PostDTO postDTO,
+            @RequestPart("post") PostUpdateDTO postUpdateDTO,
             @RequestPart(value = "files", required = false) List<MultipartFile> multipartFiles) {
-        postDTO.setPostId(id);
-        PostDTO updatedPost = postService.updatePost(postDTO, multipartFiles);
-        return updatedPost != null ? ResponseEntity.ok(updatedPost) : ResponseEntity.notFound().build();
+        PostResponseDTO updatedPost = postService.updatePost(id, postUpdateDTO, multipartFiles);
+        return ResponseEntity.ok(updatedPost);
     }
 
     @Operation(summary = "게시글 삭제")
