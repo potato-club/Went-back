@@ -1,7 +1,11 @@
 package com.example.demo.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
+import lombok.Getter;
 
+@Getter
+@Builder
 @Schema(description = "게시글과 카테고리 간 연결 정보를 담는 DTO")
 public class PostCategoryDTO {
 
@@ -13,28 +17,4 @@ public class PostCategoryDTO {
 
     @Schema(description = "연결된 카테고리 ID", example = "3")
     private Long categoryId;
-
-    public Long getPostCategoryId() {
-        return postCategoryId;
-    }
-
-    public void setPostCategoryId(Long postCategoryId) {
-        this.postCategoryId = postCategoryId;
-    }
-
-    public Long getPostId() {
-        return postId;
-    }
-
-    public void setPostId(Long postId) {
-        this.postId = postId;
-    }
-
-    public Long getCategoryId() {
-        return categoryId;
-    }
-
-    public void setCategoryId(Long categoryId) {
-        this.categoryId = categoryId;
-    }
 }
