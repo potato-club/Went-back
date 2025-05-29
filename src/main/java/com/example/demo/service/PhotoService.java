@@ -14,12 +14,12 @@ public class PhotoService {
     @Autowired
     private PhotoRepository photoRepository;
 
-    public PhotoDTO createPhoto(PhotoDTO photoDTO) {
-        Photo photo = new Photo();
-        photo.setPostId(photoDTO.getPostId());
-        photo.setUrl(photoDTO.getUrl());
-        return convertToDTO(photoRepository.save(photo));
-    }
+//    public PhotoDTO createPhoto(PhotoDTO photoDTO) {
+//        Photo photo = new Photo();
+//        photo.setPostId(photoDTO.getPostId());
+//        photo.setUrl(photoDTO.getUrl());
+//        return convertToDTO(photoRepository.save(photo));
+//    }
 
     public List<PhotoDTO> getAllPhotos() {
         return photoRepository.findAll().stream()
@@ -32,15 +32,15 @@ public class PhotoService {
         return convertToDTO(photo);
     }
 
-    public PhotoDTO updatePhoto(PhotoDTO photoDTO) {
-        Photo photo = photoRepository.findById(photoDTO.getPhotoId()).orElse(null);
-        if (photo != null) {
-            photo.setPostId(photoDTO.getPostId());
-            photo.setUrl(photoDTO.getUrl());
-            return convertToDTO(photoRepository.save(photo));
-        }
-        return null;
-    }
+//    public PhotoDTO updatePhoto(PhotoDTO photoDTO) {
+//        Photo photo = photoRepository.findById(photoDTO.getPhotoId()).orElse(null);
+//        if (photo != null) {
+//            photo.setPostId(photoDTO.getPostId());
+//            photo.setUrl(photoDTO.getUrl());
+//            return convertToDTO(photoRepository.save(photo));
+//        }
+//        return null;
+//    }
 
     public void deletePhoto(Long id) {
         photoRepository.deleteById(id);

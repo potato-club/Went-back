@@ -23,26 +23,6 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final JwtProvider jwtProvider;
 
-//    @Transactional
-//    public UserResponseDTO createUser(UserCreationDTO userDTO, HttpServletResponse response) {
-//        if (userRepository.existsByEmail(userDTO.getEmail()) || userRepository.existsBySocialKey(userDTO.getSocialKey())) {
-//            throw new ConflictException("이미 존재하는 사용자입니다.", ErrorCode.USER_ALREADY_EXISTS);
-//        }
-//
-//        UserEntity userEntity = UserEntity.builder()
-//                .socialKey(userDTO.getSocialKey())
-//                .email(userDTO.getEmail())
-//                .build();
-//
-//        UserEntity result = userRepository.save(userEntity);
-//
-//        JwtToken jwtToken = jwtProvider.issueToken(result);
-//        jwtProvider.setHeaderAccessToken(response, jwtToken.getAccessToken());
-//        jwtProvider.setHeaderRefreshToken(response, jwtToken.getRefreshToken());
-//
-//        return result.toUserResponseDTO();
-//    }
-
     public List<UserResponseDTO> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(UserEntity::toUserResponseDTO)

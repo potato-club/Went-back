@@ -1,115 +1,106 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.PostDTO;
+import com.example.demo.dto.request.PostCreationDTO;
+import com.example.demo.dto.request.PostUpdateDTO;
+import com.example.demo.dto.response.PostResponseDTO;
 import com.example.demo.dto.PostListDTO;
 import com.example.demo.entity.Category;
 import com.example.demo.entity.Photo;
 import com.example.demo.entity.Post;
+import com.example.demo.entity.UserEntity;
+import com.example.demo.error.ErrorCode;
+import com.example.demo.error.NotFoundException;
+import com.example.demo.mapper.PostMapper;
 import com.example.demo.repository.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class PostService {
-
-    @Autowired
-    private CommentRepository commentRepository;
-
-    @Autowired
-    private PostLikeRepository postLikeRepository;
-
-    @Autowired
-    private PostRepository postRepository;
-
-    @Autowired
-    private PhotoRepository photoRepository;
-
-    @Autowired
-    private S3Service s3Service;
-
-    @Autowired
-    private CategoryRepository categoryRepository;
-
+    private final CommentRepository commentRepository;
+    private final PostLikeRepository postLikeRepository;
+    private final PostRepository postRepository;
+    private final PhotoRepository photoRepository;
+    private final CategoryRepository categoryRepository;
+    private final UserRepository userRepository;
+    private final S3Service s3Service;
+    private final PostMapper postMapper;
 
     // 게시글 생성
-    public PostDTO createPost(PostDTO postDTO, List<MultipartFile> multipartFiles) {
-        Post post = new Post();
-        post.setUserId(postDTO.getUserId());
-        post.setContent(postDTO.getContent());
-        post.setCategoryId(postDTO.getCategoryId());
-        post.setCreatedAt(LocalDateTime.now());
+    @Transactional
+    public PostResponseDTO createPost(PostCreationDTO postCreationDTO, List<MultipartFile> files) {
+        Category category = categoryRepository.findById(postCreationDTO.getCategoryId())
+                .orElseThrow(() -> new NotFoundException("카테고리가 존재하지 않습니다.", ErrorCode.NOT_FOUND));
 
+        UserEntity writer = userRepository.findById(postCreationDTO.getUserId())
+                .orElseThrow(() -> new NotFoundException("사용자가 존재하지 않습니다.", ErrorCode.USER_NOT_FOUND));
+
+        Post post = postMapper.toPostEntity(postCreationDTO, category, writer);
         Post savedPost = postRepository.save(post);
 
-        // 여러 장 업로드
-        if (multipartFiles != null && !multipartFiles.isEmpty()) {
-            for (MultipartFile file : multipartFiles) {
-                String url = s3Service.uploadFile(savedPost.getUserId(), savedPost.getPostId(), file);
+        savePhotos(post.getPostId(), postCreationDTO.getUserId(), files);
 
-                Photo photo = new Photo();
-                photo.setPostId(savedPost.getPostId());
-                photo.setUrl(url);
-                photoRepository.save(photo);
-            }
-        }
-
-        return convertToDTO(savedPost);
+        return postMapper.toPostResponseDto(savedPost);
     }
 
     // 전체 게시글 조회
-    public List<PostDTO> getAllPosts() {
+    public List<PostResponseDTO> getAllPosts() {
         return postRepository.findAll().stream()
-                .map(this::convertToDTO)
+                .map(postMapper::toPostResponseDto)
                 .collect(Collectors.toList());
     }
 
     // 페이지네이션 조회
-    public Page<PostDTO> getPagedPosts(Pageable pageable) {
+    public Page<PostResponseDTO> getPagedPosts(Pageable pageable) {
         return postRepository.findAll(pageable)
-                .map(this::convertToDTO);
+                .map(postMapper::toPostResponseDto);
     }
 
     // 단건 조회
-    public PostDTO getPost(Long id) {
-        Post post = postRepository.findById(id).orElse(null);
-        return convertToDTO(post);
+    public PostResponseDTO getPost(Long id) {
+        return postRepository.findById(id)
+                .map(postMapper::toPostResponseDto)
+                .orElseThrow(() -> new NotFoundException("게시글이 존재하지 않습니다.", ErrorCode.NOT_FOUND));
+    }
+
+    // 작성자별 조회
+    public List<PostResponseDTO> getPostsByUser(Long userId) {
+        return postRepository.findByWriterId(userId).stream()
+                .map(postMapper::toPostResponseDto)
+                .collect(Collectors.toList());
     }
 
     // 게시글 수정
-    public PostDTO updatePost(PostDTO postDTO, List<MultipartFile> multipartFiles) {
-        Post post = postRepository.findById(postDTO.getPostId()).orElse(null);
-        if (post != null) {
-            post.setUserId(postDTO.getUserId());
-            post.setContent(postDTO.getContent());
-            post.setCategoryId(postDTO.getCategoryId());
+    @Transactional
+    public PostResponseDTO updatePost(Long postId, PostUpdateDTO postUpdateDTO, List<MultipartFile> files) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new NotFoundException("게시글이 존재하지 않습니다.", ErrorCode.NOT_FOUND));
 
-            // 기존 사진 모두 삭제
-            List<Photo> existingPhotos = photoRepository.findAllByPostId(post.getPostId());
-            for (Photo photo : existingPhotos) {
-                s3Service.deleteFileByUrl(photo.getUrl());
-                photoRepository.delete(photo);
-            }
+        Category category = categoryRepository.findById(postUpdateDTO.getCategoryId())
+                .orElseThrow(() -> new NotFoundException("카테고리가 존재하지 않습니다.", ErrorCode.NOT_FOUND));
 
-            // 새로 업로드
-            if (multipartFiles != null && !multipartFiles.isEmpty()) {
-                for (MultipartFile file : multipartFiles) {
-                    s3Service.uploadFile(post.getUserId(), post.getPostId(), file);
-                }
-            }
+        postMapper.updatePostEntity(postUpdateDTO, post, category);
 
-            return convertToDTO(postRepository.save(post));
-        }
-        return null;
+        photoRepository.findAllByPostId(post.getPostId()).forEach(photo -> {
+            s3Service.deleteFileByUrl(photo.getUrl());
+            photoRepository.delete(photo);
+        });
+
+        savePhotos(postId, post.getWriter().getUserId(), files);
+
+        return postMapper.toPostResponseDto(post);
     }
 
     // 게시글 삭제
+    @Transactional
     public void deletePost(Long id) {
         // 사진 먼저 삭제
         List<Photo> photos = photoRepository.findAllByPostId(id);
@@ -121,22 +112,11 @@ public class PostService {
         postRepository.deleteById(id);
     }
 
-    // Entity -> DTO 변환
-    private PostDTO convertToDTO(Post post) {
-        if (post == null) return null;
-        PostDTO dto = new PostDTO();
-        dto.setPostId(post.getPostId());
-        dto.setUserId(post.getUserId());
-        dto.setContent(post.getContent());
-        dto.setCategoryId(post.getCategoryId());
-        return dto;
-    }
-
     public Page<PostListDTO> getPostsByCategory(String categoryName, Pageable pageable) {
         Category category = categoryRepository.findByName(categoryName)
                 .orElseThrow(() -> new IllegalArgumentException("카테고리 없음"));
 
-        Page<Post> posts = postRepository.findByCategoryId(category.getId(), pageable);
+        Page<Post> posts = postRepository.findByCategoryId(category.getCategoryId(), pageable);
 
         return posts.map(post -> {
             PostListDTO dto = new PostListDTO();
@@ -152,6 +132,21 @@ public class PostService {
             dto.setStars(0.0); // 추후 별점 평균 계산 로직으로 대체
 
             return dto;
+        });
+    }
+
+    private void savePhotos(Long postId, Long userId, List<MultipartFile> files) {
+        // 여러 장 업로드
+        if (files == null) return;
+
+        files.forEach(file -> {
+            String url = s3Service.uploadFile(userId, postId, file);
+            photoRepository.save(
+                    Photo.builder()
+                            .postId(postId)
+                            .url(url)
+                            .build()
+            );
         });
     }
 

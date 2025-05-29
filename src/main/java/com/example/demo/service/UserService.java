@@ -11,7 +11,6 @@ import java.util.List;
 
 @Service
 public interface UserService {
-//    UserResponseDTO createUser(UserCreationDTO userDTO, HttpServletResponse response);
     List<UserResponseDTO> getAllUsers();
     UserResponseDTO getUser(Long id);
     UserResponseDTO findUser(UserUniqueDTO userUniqueDTO);
