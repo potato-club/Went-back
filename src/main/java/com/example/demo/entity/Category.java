@@ -1,40 +1,20 @@
 package com.example.demo.entity;
 
+import com.example.demo.entity.enums.CategoryType;
 import jakarta.persistence.*;
+import lombok.Getter;
 
 import java.io.Serializable;
 
 @Entity
+@Getter
 @Table(name = "tb_category")
 public class Category implements Serializable {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "category_id")
+    private Long CategoryId;
 
-    private String name;
-    private String koName;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getKoName() {
-        return koName;
-    }
-
-    public void setKoName(String koName) {
-        this.koName = koName;
-    }
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category_type")
+    private CategoryType categoryType;
 }
