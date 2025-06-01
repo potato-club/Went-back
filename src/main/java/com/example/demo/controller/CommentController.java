@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "Post API", description = "게시글 관련 API")
+@Tag(name = "Comment API", description = "댓글 관련 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/comments")
@@ -18,13 +18,19 @@ public class CommentController {
     private final CommentService commentService;
 
     @PostMapping
-    public ResponseEntity<Comment> addComment(@RequestParam Long postId, @RequestParam Long userId, @RequestBody String content) {
-        return ResponseEntity.ok(commentService.add(postId, userId, content));
+    public ResponseEntity<Comment> addComment(
+            @RequestParam Long postId,
+            @RequestParam Long userId,
+            @RequestBody String content
+    ) {
+        Comment comment = commentService.add(postId, userId, content);
+        return ResponseEntity.ok(comment);
     }
 
     @GetMapping("/{postId}")
     public ResponseEntity<List<Comment>> getComments(@PathVariable Long postId) {
-        return ResponseEntity.ok(commentService.getAll(postId));
+        List<Comment> list = commentService.getAll(postId);
+        return ResponseEntity.ok(list);
     }
 
     @DeleteMapping("/{id}")
@@ -33,4 +39,3 @@ public class CommentController {
         return ResponseEntity.noContent().build();
     }
 }
-

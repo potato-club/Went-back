@@ -4,8 +4,8 @@ import com.example.demo.entity.Comment;
 import com.example.demo.repository.CommentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import java.util.List;
 
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -25,4 +25,3 @@ public class CommentService {
         commentRepo.deleteById(commentId);
     }
 }
-

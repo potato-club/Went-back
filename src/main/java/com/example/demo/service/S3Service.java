@@ -29,7 +29,14 @@ public class S3Service {
         this.photoRepository = photoRepository;
     }
 
-    public String uploadFile(Long userId, Long postId, MultipartFile multipartFile) {
+    /**
+     * userId, postId 포함하여 파일 업로드 및 Photo 엔티티 저장, 반환
+     */
+    public Photo uploadFile(Long userId, Long postId, MultipartFile multipartFile) {
+        if (multipartFile == null || multipartFile.isEmpty()) {
+            throw new IllegalArgumentException("이미지는 반드시 첨부해야 합니다.");
+        }
+
         String originalFilename = multipartFile.getOriginalFilename();
         String s3FileName = UUID.randomUUID().toString().substring(0, 10) + "_" + originalFilename;
 
@@ -41,23 +48,27 @@ public class S3Service {
             amazonS3.putObject(new PutObjectRequest(bucket, s3FileName, inputStream, metadata)
                     .withCannedAcl(CannedAccessControlList.PublicRead));
         } catch (IOException e) {
-            throw new RuntimeException("파일 업로드 실패", e);
+            throw new RuntimeException("S3 파일 업로드 실패", e);
         }
 
-        // 파일 URL 저장
         String fileUrl = amazonS3.getUrl(bucket, s3FileName).toString();
 
-        // DB에 Photo 저장
         Photo photo = new Photo();
         photo.setPostId(postId);
         photo.setUserId(userId);
         photo.setUrl(fileUrl);
-        photoRepository.save(photo);
 
-        return fileUrl;
+        return photoRepository.save(photo);
     }
 
-    public String uploadImageOnly(MultipartFile multipartFile) {
+    /**
+     * 파일만 업로드 후 URL 문자열 반환
+     */
+    public String upload(MultipartFile multipartFile) {
+        if (multipartFile == null || multipartFile.isEmpty()) {
+            throw new IllegalArgumentException("이미지는 반드시 첨부해야 합니다.");
+        }
+
         String originalFilename = multipartFile.getOriginalFilename();
         String s3FileName = UUID.randomUUID().toString().substring(0, 10) + "_" + originalFilename;
 
@@ -69,17 +80,15 @@ public class S3Service {
             amazonS3.putObject(new PutObjectRequest(bucket, s3FileName, inputStream, metadata)
                     .withCannedAcl(CannedAccessControlList.PublicRead));
         } catch (IOException e) {
-            throw new RuntimeException("S3 업로드 실패", e);
+            throw new RuntimeException("S3 파일 업로드 실패", e);
         }
 
         return amazonS3.getUrl(bucket, s3FileName).toString();
     }
 
-
-    public void deleteFile(String fileName) {
-        amazonS3.deleteObject(new DeleteObjectRequest(bucket, fileName));
-    }
-
+    /**
+     * URL 기반 S3 파일 삭제
+     */
     public void deleteFileByUrl(String fileUrl) {
         String key = fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
         amazonS3.deleteObject(new DeleteObjectRequest(bucket, key));

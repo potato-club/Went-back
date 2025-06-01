@@ -1,54 +1,39 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.CategoryDTO;
-import com.example.demo.service.CategoryService;
+import com.example.demo.domain.CategoryType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Tag(name = "Category API", description = "카테고리 관련 API")
 @RestController
 @RequestMapping("/api/categories")
 public class CategoryController {
 
-    @Autowired
-    private CategoryService categoryService;
-
-    @Operation(summary = "카테고리 생성", description = "새로운 카테고리를 생성합니다.")
-    @PostMapping
-    public ResponseEntity<CategoryDTO> createCategory(@RequestBody CategoryDTO categoryDTO) {
-        return ResponseEntity.ok(categoryService.createCategory(categoryDTO));
-    }
-
-    @Operation(summary = "전체 카테고리 조회", description = "등록된 모든 카테고리를 조회합니다.")
+    @Operation(summary = "카테고리 목록 조회", description = "사용 가능한 모든 카테고리 목록을 조회합니다.")
     @GetMapping
-    public ResponseEntity<List<CategoryDTO>> getAllCategories() {
-        return ResponseEntity.ok(categoryService.getAllCategories());
+    public List<CategoryResponse> getCategories() {
+        return Arrays.stream(CategoryType.values())
+                .map(type -> new CategoryResponse(type.name(), type.getDisplayName()))
+                .collect(Collectors.toList());
     }
 
-    @Operation(summary = "카테고리 단건 조회", description = "ID를 기준으로 단일 카테고리를 조회합니다.")
-    @GetMapping("/{id}")
-    public ResponseEntity<CategoryDTO> getCategory(@PathVariable Long id) {
-        CategoryDTO categoryDTO = categoryService.getCategory(id);
-        return categoryDTO != null ? ResponseEntity.ok(categoryDTO) : ResponseEntity.notFound().build();
-    }
+    // 응답 DTO (내부 static class 또는 별도 파일로 작성 가능)
+    public static class CategoryResponse {
+        private String code; // Enum 코드 값 (예: MOVIE)
+        private String name; // 한글명 (예: 영화)
 
-    @Operation(summary = "카테고리 수정", description = "ID에 해당하는 카테고리를 수정합니다.")
-    @PutMapping("/{id}")
-    public ResponseEntity<CategoryDTO> updateCategory(@PathVariable Long id, @RequestBody CategoryDTO categoryDTO) {
-        categoryDTO.setCategoryId(id);
-        CategoryDTO updatedCategory = categoryService.updateCategory(categoryDTO);
-        return updatedCategory != null ? ResponseEntity.ok(updatedCategory) : ResponseEntity.notFound().build();
-    }
-
-    @Operation(summary = "카테고리 삭제", description = "ID에 해당하는 카테고리를 삭제합니다.")
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
-        categoryService.deleteCategory(id);
-        return ResponseEntity.noContent().build();
+        public CategoryResponse(String code, String name) {
+            this.code = code;
+            this.name = name;
+        }
+        public String getCode() { return code; }
+        public String getName() { return name; }
     }
 }

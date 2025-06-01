@@ -55,5 +55,3 @@ public class PostCategoryService {
         return dto;
     }
 }
-
-

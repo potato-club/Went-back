@@ -1,18 +1,28 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
-
 import java.io.Serializable;
 
 @Entity
 @Table(name = "tb_category")
 public class Category implements Serializable {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // 기본키
 
-    private String name;
-    private String koName;
+    @Column(nullable = false, unique = true)
+    private String name; // Enum 코드 (예: "MOVIE", "BOOK" 등)
+
+    @Column(nullable = false)
+    private String koName; // 한글명 (예: "영화", "책" 등)
+
+    public Category() {}
+
+    public Category(String name, String koName) {
+        this.name = name;
+        this.koName = koName;
+    }
 
     public Long getId() {
         return id;

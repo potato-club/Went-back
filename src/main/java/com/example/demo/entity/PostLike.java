@@ -20,5 +20,3 @@ public class PostLike {
     private Long postId;
     private Long userId;
 }
-
-

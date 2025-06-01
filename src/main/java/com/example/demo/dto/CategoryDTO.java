@@ -1,19 +1,13 @@
 package com.example.demo.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-
-@Schema(description = "카테고리 정보를 담는 DTO")
 public class CategoryDTO {
 
-    @Schema(description = "카테고리 ID", example = "1")
-    private Long categoryId;
+    private Long categoryId; // 반드시 필드명 일치
 
-    @Schema(description = "카테고리 이름", example = "trip")
     private String name;
-
-    @Schema(description = "카테고리 한글 이름", example = "여행")
     private String koName;
 
+    // Getter/Setter
     public Long getCategoryId() {
         return categoryId;
     }
