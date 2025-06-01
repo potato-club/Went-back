@@ -5,6 +5,7 @@ import com.example.demo.dto.PostListDTO;
 import com.example.demo.service.PostService;
 import com.example.demo.service.S3Service;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -43,13 +44,37 @@ public class PostController {
         return ResponseEntity.ok(created);
     }
 
-    @Operation(summary = "카테고리/정렬/페이지 기반 게시글 목록 조회")
+    @Operation(
+            summary = "게시글 목록 조회",
+            description = """
+    게시글 목록을 조회합니다.
+
+    정렬 기준(sort) 옵션:
+    - recent: 최신순 (기본값)
+    - likes: 좋아요순
+    - comments: 댓글순
+    - stars: 별점순
+    - views: 조회수순
+    - oldest: 오래된순
+    """
+    )
     @GetMapping("/list")
     public ResponseEntity<Page<PostListDTO>> getFilteredPosts(
             @RequestParam String category,
+
+            @Parameter(
+                    description = "정렬 기준\n" +
+                            "recent: 최신순(기본값), likes: 좋아요순, comments: 댓글순, stars: 별점순, views: 조회수순, oldest: 오래된순",
+                    example = "likes"
+            )
             @RequestParam(defaultValue = "recent") String sort,
+
+            @Parameter(description = "페이지 번호(0부터 시작)", example = "0")
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "8") int size) {
+
+            @Parameter(description = "페이지 크기(한 페이지 당 게시글 수)", example = "8")
+            @RequestParam(defaultValue = "8") int size
+    ) {
         Pageable pageable = PageRequest.of(page, size, getSortOption(sort));
         try {
             Long categoryId = Long.valueOf(category);
