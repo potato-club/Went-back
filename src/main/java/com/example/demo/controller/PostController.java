@@ -38,33 +38,35 @@ public class PostController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PostDTO> createPost(
             @RequestPart("post") PostDTO postDTO,
-            @RequestPart(value = "files", required = false) List<MultipartFile> files)
-    {
+            @RequestPart(value = "files", required = false) List<MultipartFile> files) {
         PostDTO created = postService.createPost(postDTO, files);
         return ResponseEntity.ok(created);
     }
 
     @Operation(
-            summary = "게시글 목록 조회",
+            summary = "카테고리별 게시글 목록 조회",
             description = """
-    게시글 목록을 조회합니다.
-
-    정렬 기준(sort) 옵션:
-    - recent: 최신순 (기본값)
-    - likes: 좋아요순
-    - comments: 댓글순
-    - stars: 별점순
-    - views: 조회수순
-    - oldest: 오래된순
-    """
+                        1. /categories API를 통해 카테고리 목록을 조회하세요.
+                        2. 원하는 카테고리의 id를 category 파라미터로 입력해 게시글을 조회합니다.
+                    
+                        정렬 기준(sort) 옵션:
+                        - recent: 최신순 (기본값)
+                        - likes: 좋아요순
+                        - comments: 댓글순
+                        - stars: 별점순
+                        - views: 조회수순
+                        - oldest: 오래된순
+                    """
     )
     @GetMapping("/list")
     public ResponseEntity<Page<PostListDTO>> getFilteredPosts(
+            @Parameter(description = "카테고리 ID", example = "1", required = true)
             @RequestParam String category,
 
             @Parameter(
-                    description = "정렬 기준\n" +
-                            "recent: 최신순(기본값), likes: 좋아요순, comments: 댓글순, stars: 별점순, views: 조회수순, oldest: 오래된순",
+                    description = "정렬 기준 (recent: 최신순, likes: 좋아요순, " +
+                            "comments: 댓글순, " +
+                            "stars: 별점순, views: 조회수순, oldest: 오래된순)",
                     example = "likes"
             )
             @RequestParam(defaultValue = "recent") String sort,
@@ -81,17 +83,19 @@ public class PostController {
             Page<PostListDTO> result = postService.getPostsByCategory(categoryId, pageable);
             return ResponseEntity.ok(result);
         } catch (NumberFormatException e) {
+            // 카테고리 값이 올바르지 않은 경우 400 에러
             return ResponseEntity.badRequest().body(Page.empty());
         }
     }
 
+    // 정렬 기준에 따라 Sort 객체를 반환
     private Sort getSortOption(String sort) {
         return switch (sort) {
             case "likes" -> Sort.by(Sort.Direction.DESC, "likes");
             case "comments" -> Sort.by(Sort.Direction.DESC, "commentCount");
             case "stars" -> Sort.by(Sort.Direction.DESC, "stars");
-            case "views" -> Sort.by(Sort.Direction.DESC, "viewCount"); // 조회수순
-            case "oldest" -> Sort.by(Sort.Direction.ASC, "createdAt"); // 오래된순
+            case "views" -> Sort.by(Sort.Direction.DESC, "viewCount");
+            case "oldest" -> Sort.by(Sort.Direction.ASC, "createdAt");
             default -> Sort.by(Sort.Direction.DESC, "createdAt");
         };
     }
@@ -99,7 +103,7 @@ public class PostController {
     @Operation(summary = "게시글 단건 조회 (조회 시 조회수 증가)")
     @GetMapping("/{id}")
     public ResponseEntity<PostDTO> getPost(@PathVariable Long id) {
-        // 서비스 계층에서 조회수 1 증가 반영하도록 이미 구현되어 있습니다.
+        // 서비스 계층에서 조회수 1 증가시키고 결과 반환
         PostDTO postDTO = postService.getPost(id);
         return postDTO != null ? ResponseEntity.ok(postDTO) : ResponseEntity.notFound().build();
     }
@@ -109,8 +113,7 @@ public class PostController {
     public ResponseEntity<PostDTO> updatePost(
             @PathVariable Long id,
             @RequestPart("post") PostDTO postDTO,
-            @RequestPart(value = "files", required = false) List<MultipartFile> files)
-    {
+            @RequestPart(value = "files", required = false) List<MultipartFile> files) {
         postDTO.setPostId(id);
         PostDTO updatedPost = postService.updatePost(postDTO, files);
         return updatedPost != null ? ResponseEntity.ok(updatedPost) : ResponseEntity.notFound().build();

@@ -34,7 +34,9 @@ public class PostService {
         this.s3Service = s3Service;
     }
 
-    // 게시글 작성 + 이미지 업로드
+    /**
+     * 게시글 작성 (이미지 S3 업로드)
+     */
     @Transactional
     public PostDTO createPost(PostDTO postDTO, List<MultipartFile> files) {
         Post post = new Post();
@@ -42,16 +44,16 @@ public class PostService {
         post.setContent(postDTO.getContent());
         post.setCreatedAt(LocalDateTime.now());
         post.setCategoryId(postDTO.getCategoryId());
+        post.setViewCount(0);
+        post.setViewCount(post.getViewCount() + 1);
 
         post = postRepository.save(post);
 
         List<String> photoUrls = new ArrayList<>();
         if (files != null) {
             for (MultipartFile file : files) {
-                // 파일 업로드 후 URL 반환
                 String url = s3Service.upload(file);
 
-                // Photo 엔티티 생성 및 저장
                 Photo photo = new Photo();
                 photo.setPostId(post.getPostId());
                 photo.setUserId(post.getUserId());
@@ -65,11 +67,14 @@ public class PostService {
         postDTO.setPostId(post.getPostId());
         postDTO.setCreatedAt(post.getCreatedAt());
         postDTO.setPhotoUrls(photoUrls);
+        postDTO.setViewCount(post.getViewCount());
 
         return postDTO;
     }
 
-    // 게시글 단건 조회 (사진 포함, 조회수 증가 반영)
+    /**
+     * 게시글 상세 조회 (사진 포함, 조회수 증가)
+     */
     @Transactional
     public PostDTO getPost(Long postId) {
         Optional<Post> optionalPost = postRepository.findById(postId);
@@ -80,7 +85,7 @@ public class PostService {
 
         // 조회수 1 증가
         post.setViewCount(post.getViewCount() + 1);
-        postRepository.save(post); // 명시적으로 저장 (안해도 되지만 안정적으로 반영)
+        postRepository.save(post);
 
         List<Photo> photos = photoRepository.findAllByPostId(postId);
         List<String> photoUrls = photos.stream()
@@ -93,13 +98,15 @@ public class PostService {
         dto.setContent(post.getContent());
         dto.setCreatedAt(post.getCreatedAt());
         dto.setCategoryId(post.getCategoryId());
-        dto.setViewCount(post.getViewCount()); // 조회수 필드 DTO에 반영 (DTO에 필드가 있다면)
+        dto.setViewCount(post.getViewCount());
         dto.setPhotoUrls(photoUrls);
 
         return dto;
     }
 
-    // 게시글 수정 (사진 모두 삭제 후 재업로드)
+    /**
+     * 게시글 수정 (기존 사진 전체 삭제 후 새로 등록)
+     */
     @Transactional
     public PostDTO updatePost(PostDTO postDTO, List<MultipartFile> files) {
         Optional<Post> optionalPost = postRepository.findById(postDTO.getPostId());
@@ -119,10 +126,10 @@ public class PostService {
         }
         photoRepository.deleteAll(existingPhotos);
 
+        // 새 파일 업로드 및 저장
         List<String> photoUrls = new ArrayList<>();
         if (files != null) {
             for (MultipartFile file : files) {
-                // 파일 업로드 후 URL 반환
                 String url = s3Service.upload(file);
 
                 Photo photo = new Photo();
@@ -147,11 +154,29 @@ public class PostService {
         return resultDTO;
     }
 
-    // 예시: 카테고리별 게시글 조회 (페이징)
     @Transactional(readOnly = true)
     public Page<PostListDTO> getPostsByCategory(Long categoryId, Pageable pageable) {
+        // 1. 게시글 조회 (페이징)
         Page<Post> posts = postRepository.findAllByCategoryId(categoryId, pageable);
 
+        // 2. 게시글 ID 리스트 추출
+        List<Long> postIds = posts.getContent().stream()
+                .map(Post::getPostId)
+                .collect(Collectors.toList());
+
+        // 3. 사진 한 번에 조회 (postId별로 그룹핑)
+        final Map<Long, List<String>> photoMap;
+        if (!postIds.isEmpty()) {
+            List<Photo> photos = photoRepository.findAllByPostIdIn(postIds);
+            photoMap = photos.stream().collect(Collectors.groupingBy(
+                    Photo::getPostId,
+                    Collectors.mapping(Photo::getUrl, Collectors.toList())
+            ));
+        } else {
+            photoMap = Collections.emptyMap();
+        }
+
+        // 4. DTO로 변환(필요한 모든 정보 세팅)
         return posts.map(post -> {
             PostListDTO dto = new PostListDTO();
             dto.setPostId(post.getPostId());
@@ -159,17 +184,21 @@ public class PostService {
             dto.setContent(post.getContent());
             dto.setCreatedAt(post.getCreatedAt());
             dto.setCategoryId(post.getCategoryId());
-
-            List<Photo> photos = photoRepository.findAllByPostId(post.getPostId());
-            dto.setPhotoUrls(photos.stream().map(Photo::getUrl).collect(Collectors.toList()));
-
             dto.setViewCount(post.getViewCount());
-            // 예: 댓글 수 등의 필드 추가 가능
+            // photoMap은 반드시 미리 만들어두어야 하며, 없다면 빈 리스트 반환
+            dto.setPhotoUrls(photoMap.getOrDefault(post.getPostId(), Collections.emptyList()));
+
+            // 필요하다면 댓글 수, 좋아요 수 등 추가 필드 세팅
+            // dto.setCommentCount(...);
+            // dto.setLikeCount(...);
 
             return dto;
         });
     }
 
+    /**
+     * 게시글 삭제 (사진 및 S3 삭제 포함)
+     */
     @Transactional
     public void deletePost(Long id) {
         Optional<Post> optionalPost = postRepository.findById(id);
@@ -178,7 +207,6 @@ public class PostService {
         }
         Post post = optionalPost.get();
 
-        // (첨부파일 등 삭제 로직이 필요하다면 아래 부분 유지)
         List<Photo> photos = photoRepository.findAllByPostId(post.getPostId());
         for (Photo photo : photos) {
             s3Service.deleteFileByUrl(photo.getUrl());

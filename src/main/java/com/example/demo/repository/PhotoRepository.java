@@ -9,5 +9,6 @@ public interface PhotoRepository extends JpaRepository<Photo, Long> {
     // 특정 게시글에 속한 모든 사진 조회
     List<Photo> findAllByPostId(Long postId);
 
-    // 필요하다면 추가 쿼리 메서드 선언 가능
+    // 여러 게시글의 모든 사진 조회 (추가)
+    List<Photo> findAllByPostIdIn(List<Long> postIds);
 }
