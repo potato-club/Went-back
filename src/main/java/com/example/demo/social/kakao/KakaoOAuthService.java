@@ -1,28 +1,41 @@
-package com.example.demo.social.google;
+package com.example.demo.social.kakao;
 
 import com.example.demo.dto.response.UserResponseDTO;
 import com.example.demo.entity.UserEntity;
 import com.example.demo.jwt.JwtProvider;
 import com.example.demo.jwt.JwtToken;
 import com.example.demo.repository.UserRepository;
-import com.example.demo.social.google.dto.GoogleUserInfo;
+import com.example.demo.social.kakao.dto.KakaoTokenResponse;
+import com.example.demo.social.kakao.dto.KakaoUserInfo;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class GoogleOAuthService {
+public class KakaoOAuthService {
+    private final KakaoTokenClient kakaoTokenClient;
+    private final KakaoIdTokenVerifierService kakaoIdTokenVerifierService;
     private final UserRepository userRepository;
     private final JwtProvider jwtProvider;
-    private final GoogleIdTokenVerifierService googleIdTokenVerifierService;
+
+    @Value( "${kakao.client-id}")
+    private String clientId;
+
+    @Value( "${kakao.client-secret:}")
+    private String clientSecret;
+
+    @Value( "${kakao.redirect-uri}")
+    private String redirectUri;
 
     @Transactional
-    public UserResponseDTO  loginWithGoogle(String idToken, HttpServletResponse response) {
-        GoogleUserInfo googleUserInfo = googleIdTokenVerifierService.verify(idToken);
+    public UserResponseDTO loginWithKakao(String code, HttpServletResponse response) {
+        KakaoTokenResponse kakaoTokenResponse = kakaoTokenClient.getToken(code, clientId, redirectUri, clientSecret);
+        KakaoUserInfo kakaoUserInfo = kakaoIdTokenVerifierService.verify(kakaoTokenResponse.getIdToken());
 
-        UserEntity user = userRepository.findBySocialKey(googleUserInfo.getUserId())
+        UserEntity user = userRepository.findBySocialKey(kakaoUserInfo.getUserId())
                 .orElse(null);
 
         boolean isNewUser = false;
@@ -32,8 +45,8 @@ public class GoogleOAuthService {
             isNewUser = true;
 
             user = UserEntity.builder()
-                    .socialKey(googleUserInfo.getUserId())
-                    .email(googleUserInfo.getEmail())
+                    .socialKey(kakaoUserInfo.getUserId())
+                    .email(kakaoUserInfo.getEmail())
                     .build();
 
             user = userRepository.save(user);
@@ -49,5 +62,4 @@ public class GoogleOAuthService {
             return user.toUserLoginResponseDTO();
         }
     }
-
 }

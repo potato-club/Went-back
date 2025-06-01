@@ -4,13 +4,11 @@ server:
     port: 6379
   port: 80
 spring:
-  config:
-    import: optional:file:.env[.properties]
   datasource:
-    url: jdbc:mariadb://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}
     username: ${DB_USER}
     password: ${DB_PASS}
-    driver-class-name: org.mariadb.jdbc.Driver
+    driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
       ddl-auto: update
@@ -44,9 +42,15 @@ jwt:
   refreshExpiration: 604800000 # 60000 #
   aesKey: ${JWT_AES_KEY}
 
-app:
+
+
+oauth:
   google:
-    client:
-      id: ${GOOGLE_CLIENT_ID}
+    client-id: ${GOOGLE_CLIENT_ID}
 
-
+  kakao:
+    app-id: ${KAKAO_APP_ID}
+    client-id: ${KAKAO_CLIENT_ID}
+    redirect-url: ${KAKAO_REDIRECT_URL}
+    client-secret: ${KAKAO_CLIENT_SECRET}
+    base-url: ${KAKAO_BASE_URL}

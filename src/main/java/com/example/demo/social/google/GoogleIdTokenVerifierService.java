@@ -3,6 +3,7 @@ package com.example.demo.social.google;
 import com.example.demo.error.ErrorCode;
 import com.example.demo.error.ExternalAuthException;
 import com.example.demo.error.InvalidTokenException;
+import com.example.demo.social.google.dto.GoogleUserInfo;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -12,14 +13,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
-import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class GoogleIdTokenVerifierService {
 
-    @Value("${app.google.client.id}")
+    @Value("${oauth.google.client-id}")
     private String googleClientId;
 
     public GoogleUserInfo verify(String idTokenString) {
@@ -37,9 +36,7 @@ public class GoogleIdTokenVerifierService {
 
             return new GoogleUserInfo(
                     payload.getSubject(), // sub == 고유 ID == socialKey
-                    payload.getEmail(),
-                    (String) payload.get("name"),
-                    (String) payload.get("picture")
+                    payload.getEmail()
             );
         } catch (Exception e) {
             throw new ExternalAuthException("Google ID Token 검증 실패", ErrorCode.EXTERNAL_AUTH_PROVIDER_ERROR);
