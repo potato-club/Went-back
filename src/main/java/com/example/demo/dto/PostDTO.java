@@ -11,6 +11,7 @@ public class PostDTO {
     private Long categoryId;
     private List<String> photoUrls;
     private String title;
+    private int viewCount; // 조회수 필드 추가
 
     public PostDTO() {}
 
@@ -59,8 +60,15 @@ public class PostDTO {
     public String getTitle() {
         return title;
     }
-
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    // 조회수 getter/setter 추가
+    public int getViewCount() {
+        return viewCount;
+    }
+    public void setViewCount(int viewCount) {
+        this.viewCount = viewCount;
     }
 }

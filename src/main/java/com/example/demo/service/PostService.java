@@ -69,14 +69,18 @@ public class PostService {
         return postDTO;
     }
 
-    // 게시글 단건 조회 (사진 포함)
-    @Transactional(readOnly = true)
+    // 게시글 단건 조회 (사진 포함, 조회수 증가 반영)
+    @Transactional
     public PostDTO getPost(Long postId) {
         Optional<Post> optionalPost = postRepository.findById(postId);
         if (optionalPost.isEmpty()) {
             return null;
         }
         Post post = optionalPost.get();
+
+        // 조회수 1 증가
+        post.setViewCount(post.getViewCount() + 1);
+        postRepository.save(post); // 명시적으로 저장 (안해도 되지만 안정적으로 반영)
 
         List<Photo> photos = photoRepository.findAllByPostId(postId);
         List<String> photoUrls = photos.stream()
@@ -89,6 +93,7 @@ public class PostService {
         dto.setContent(post.getContent());
         dto.setCreatedAt(post.getCreatedAt());
         dto.setCategoryId(post.getCategoryId());
+        dto.setViewCount(post.getViewCount()); // 조회수 필드 DTO에 반영 (DTO에 필드가 있다면)
         dto.setPhotoUrls(photoUrls);
 
         return dto;
@@ -117,6 +122,7 @@ public class PostService {
         List<String> photoUrls = new ArrayList<>();
         if (files != null) {
             for (MultipartFile file : files) {
+                // 파일 업로드 후 URL 반환
                 String url = s3Service.upload(file);
 
                 Photo photo = new Photo();
@@ -129,33 +135,21 @@ public class PostService {
             }
         }
 
-        postDTO.setCreatedAt(post.getCreatedAt());
-        postDTO.setPhotoUrls(photoUrls);
+        PostDTO resultDTO = new PostDTO();
+        resultDTO.setPostId(post.getPostId());
+        resultDTO.setUserId(post.getUserId());
+        resultDTO.setContent(post.getContent());
+        resultDTO.setCreatedAt(post.getCreatedAt());
+        resultDTO.setCategoryId(post.getCategoryId());
+        resultDTO.setPhotoUrls(photoUrls);
+        resultDTO.setViewCount(post.getViewCount());
 
-        return postDTO;
+        return resultDTO;
     }
 
-    // 게시글 삭제 (사진도 모두 삭제)
-    @Transactional
-    public void deletePost(Long postId) {
-        List<Photo> photos = photoRepository.findAllByPostId(postId);
-        for (Photo photo : photos) {
-            s3Service.deleteFileByUrl(photo.getUrl());
-        }
-        photoRepository.deleteAll(photos);
-        postRepository.deleteById(postId);
-    }
-
-    // 카테고리별 페이징 게시글 목록 조회
+    // 예시: 카테고리별 게시글 조회 (페이징)
     @Transactional(readOnly = true)
-    public Page<PostListDTO> getPostsByCategory(String category, Pageable pageable) {
-        Long categoryId;
-        try {
-            categoryId = Long.parseLong(category);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Category는 숫자여야 합니다.");
-        }
-
+    public Page<PostListDTO> getPostsByCategory(Long categoryId, Pageable pageable) {
         Page<Post> posts = postRepository.findAllByCategoryId(categoryId, pageable);
 
         return posts.map(post -> {
@@ -166,12 +160,31 @@ public class PostService {
             dto.setCreatedAt(post.getCreatedAt());
             dto.setCategoryId(post.getCategoryId());
 
-            List<Photo> photoList = photoRepository.findAllByPostId(post.getPostId());
-            dto.setPhotoUrls(photoList.stream()
-                    .map(Photo::getUrl)
-                    .collect(Collectors.toList()));
+            List<Photo> photos = photoRepository.findAllByPostId(post.getPostId());
+            dto.setPhotoUrls(photos.stream().map(Photo::getUrl).collect(Collectors.toList()));
+
+            dto.setViewCount(post.getViewCount());
+            // 예: 댓글 수 등의 필드 추가 가능
 
             return dto;
         });
+    }
+
+    @Transactional
+    public void deletePost(Long id) {
+        Optional<Post> optionalPost = postRepository.findById(id);
+        if (optionalPost.isEmpty()) {
+            throw new NoSuchElementException("게시글이 존재하지 않습니다.");
+        }
+        Post post = optionalPost.get();
+
+        // (첨부파일 등 삭제 로직이 필요하다면 아래 부분 유지)
+        List<Photo> photos = photoRepository.findAllByPostId(post.getPostId());
+        for (Photo photo : photos) {
+            s3Service.deleteFileByUrl(photo.getUrl());
+        }
+        photoRepository.deleteAll(photos);
+
+        postRepository.delete(post);
     }
 }

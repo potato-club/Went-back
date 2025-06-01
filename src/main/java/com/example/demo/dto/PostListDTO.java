@@ -10,6 +10,8 @@ public class PostListDTO {
     private LocalDateTime createdAt;
     private Long categoryId;
     private List<String> photoUrls;
+    private Integer viewCount;       // 조회수 추가
+    private Integer commentCount;    // 댓글 수 추가
 
     public PostListDTO() {}
 
@@ -53,5 +55,19 @@ public class PostListDTO {
     }
     public void setPhotoUrls(List<String> photoUrls) {
         this.photoUrls = photoUrls;
+    }
+
+    public Integer getViewCount() {
+        return viewCount;
+    }
+    public void setViewCount(Integer viewCount) {
+        this.viewCount = viewCount;
+    }
+
+    public Integer getCommentCount() {
+        return commentCount;
+    }
+    public void setCommentCount(Integer commentCount) {
+        this.commentCount = commentCount;
     }
 }

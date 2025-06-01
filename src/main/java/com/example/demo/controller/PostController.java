@@ -51,8 +51,13 @@ public class PostController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "8") int size) {
         Pageable pageable = PageRequest.of(page, size, getSortOption(sort));
-        Page<PostListDTO> result = postService.getPostsByCategory(category, pageable);
-        return ResponseEntity.ok(result);
+        try {
+            Long categoryId = Long.valueOf(category);
+            Page<PostListDTO> result = postService.getPostsByCategory(categoryId, pageable);
+            return ResponseEntity.ok(result);
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body(Page.empty());
+        }
     }
 
     private Sort getSortOption(String sort) {
@@ -60,13 +65,16 @@ public class PostController {
             case "likes" -> Sort.by(Sort.Direction.DESC, "likes");
             case "comments" -> Sort.by(Sort.Direction.DESC, "commentCount");
             case "stars" -> Sort.by(Sort.Direction.DESC, "stars");
+            case "views" -> Sort.by(Sort.Direction.DESC, "viewCount"); // 조회수순
+            case "oldest" -> Sort.by(Sort.Direction.ASC, "createdAt"); // 오래된순
             default -> Sort.by(Sort.Direction.DESC, "createdAt");
         };
     }
 
-    @Operation(summary = "게시글 단건 조회")
+    @Operation(summary = "게시글 단건 조회 (조회 시 조회수 증가)")
     @GetMapping("/{id}")
     public ResponseEntity<PostDTO> getPost(@PathVariable Long id) {
+        // 서비스 계층에서 조회수 1 증가 반영하도록 이미 구현되어 있습니다.
         PostDTO postDTO = postService.getPost(id);
         return postDTO != null ? ResponseEntity.ok(postDTO) : ResponseEntity.notFound().build();
     }

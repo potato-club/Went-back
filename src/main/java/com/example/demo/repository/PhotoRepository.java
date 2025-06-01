@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface PhotoRepository extends JpaRepository<Photo, Long> {
+
     // 특정 게시글에 속한 모든 사진 조회
     List<Photo> findAllByPostId(Long postId);
 

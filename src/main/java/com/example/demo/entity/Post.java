@@ -20,7 +20,10 @@ public class Post {
 
     private Long categoryId; // 카테고리 ID (별도의 카테고리 테이블 참조)
 
+    private Integer viewCount = 0; // 조회수 필드 추가 및 기본값 설정
+
     // Getters and Setters
+
     public Long getPostId() { return postId; }
     public void setPostId(Long postId) { this.postId = postId; }
 
@@ -35,4 +38,7 @@ public class Post {
 
     public Long getCategoryId() { return categoryId; }
     public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
+
+    public Integer getViewCount() { return viewCount; }
+    public void setViewCount(Integer viewCount) { this.viewCount = viewCount; }
 }
