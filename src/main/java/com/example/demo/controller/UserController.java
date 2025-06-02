@@ -22,12 +22,6 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
 
-//    @Operation(summary = "사용자 등록", description = "새로운 사용자를 등록합니다.")
-//    @PostMapping
-//    public ResponseEntity<UserResponseDTO> createUser(@RequestBody UserCreationDTO userDTO, HttpServletResponse response) {
-//        return ResponseEntity.ok(userService.createUser(userDTO, response));
-//    }
-
     @Operation(summary = "전체 사용자 조회", description = "등록된 모든 사용자를 조회합니다.")
     @GetMapping
     public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
