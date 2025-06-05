@@ -6,6 +6,7 @@ import java.util.List;
 public class PostListDTO {
     private Long postId;
     private Long userId;
+    private String title;
     private String content;
     private LocalDateTime createdAt;
     private Long categoryId;
@@ -29,9 +30,11 @@ public class PostListDTO {
         this.userId = userId;
     }
 
-    public String getContent() {
-        return content;
-    }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+
+    public String getContent() { return content; }
+
     public void setContent(String content) {
         this.content = content;
     }

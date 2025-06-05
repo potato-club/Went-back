@@ -50,7 +50,7 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/api/posts/**").permitAll()
                         .requestMatchers("/api/users", "/api/users/reissue", "/api/users/logout").permitAll()
                         .requestMatchers("/api/auth/google", "/api/auth/kakao").permitAll()
                         .anyRequest().authenticated()
