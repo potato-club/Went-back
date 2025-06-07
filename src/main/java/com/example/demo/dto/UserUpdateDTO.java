@@ -17,16 +17,13 @@ public class UserUpdateDTO {
     private String nickName;
 
     //optional value
-//    @NotBlank
     //yyyy-MM-dd
+    @NotBlank(message = "birthDate is required.")
     private String birthDate;
 
     @NotBlank(message = "region is required.")// ??? is optional??
     private String region;
 
     // 유저가 선호하는 카테고리
-    @ElementCollection
-    private List<Long> categoryIds;
-
-    private List<Long> categories = new ArrayList<>();
+    private List<Long> categoryIds = new ArrayList<>();
 }
