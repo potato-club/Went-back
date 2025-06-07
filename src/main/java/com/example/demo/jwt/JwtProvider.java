@@ -3,6 +3,7 @@ package com.example.demo.jwt;
 import com.example.demo.entity.UserEntity;
 import com.example.demo.error.*;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.security.CustomUserDetailsService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -15,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -29,8 +31,9 @@ import static com.example.demo.jwt.JwtConstant.*;
 public class JwtProvider {
     private final Key key;
     private final UserRepository userRepository;
+    private final CustomUserDetailsService customUserDetailsService;
 
-    public JwtProvider(@Value("${jwt.secretKey}") String secretKey, UserRepository userRepository) {
+    public JwtProvider(@Value("${jwt.secretKey}") String secretKey, UserRepository userRepository, CustomUserDetailsService customUserDetailsService) {
         secretKey = secretKey.trim();
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
 
@@ -40,6 +43,7 @@ public class JwtProvider {
 
         this.key = Keys.hmacShaKeyFor(keyBytes);
         this.userRepository = userRepository;
+        this.customUserDetailsService = customUserDetailsService;
     }
 
     public String createAccessToken(String username, String authorities) {
@@ -144,9 +148,9 @@ public class JwtProvider {
     }
 
     public Authentication getAuthentication(String token) {
-        if (token == null || token.isBlank() || !token.startsWith("Bearer ")) {
-            throw new UnAuthorizedException("Access Token이 존재하지 않거나, 잘못된 형식입니다.", ErrorCode.INVALID_ACCESS_TOKEN);
-        }
+//        if (token == null || token.isBlank() || !token.startsWith("Bearer ")) {
+//            throw new UnAuthorizedException("Access Token이 존재하지 않거나, 잘못된 형식입니다.", ErrorCode.INVALID_ACCESS_TOKEN);
+//        }
 
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(key)
@@ -157,12 +161,12 @@ public class JwtProvider {
         String username = claims.getSubject();
         String authority = (String) claims.get("authorities"); // user
 
-        Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(authority));
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
 
-        UserEntity user = new UserEntity(username);
+        Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(authority));
 //        user.updateEmail(username);// 이메일만 담아둠
 
-        return new UsernamePasswordAuthenticationToken(user, token, authorities);
+        return new UsernamePasswordAuthenticationToken(userDetails, token, authorities);
 
     }
 
