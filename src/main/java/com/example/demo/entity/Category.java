@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -17,4 +19,7 @@ public class Category implements Serializable {
     @Enumerated(EnumType.STRING)
     @Column(name = "category_type")
     private CategoryType categoryType;
+
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserCategory> userCategories = new ArrayList<>();
 }
