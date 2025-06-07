@@ -3,10 +3,13 @@ package com.example.demo.service.impl;
 import com.example.demo.dto.response.UserResponseDTO;
 import com.example.demo.dto.UserUniqueDTO;
 import com.example.demo.dto.UserUpdateDTO;
+import com.example.demo.entity.Category;
+import com.example.demo.entity.UserCategory;
 import com.example.demo.entity.UserEntity;
 import com.example.demo.error.*;
 import com.example.demo.jwt.JwtProvider;
 import com.example.demo.jwt.JwtToken;
+import com.example.demo.repository.CategoryRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,6 +25,14 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final JwtProvider jwtProvider;
+    private final CategoryRepository categoryRepository;
+
+//    public UserResponseDTO createProfile(UserEntity currentUser, UserUpdateDTO userUpdateDTO) {
+//       List<Category> categories = categoryRepository.findAllById(userUpdateDTO.getCategoryIds());
+//        currentUser.setupInitialProfile(userUpdateDTO, categories);
+//        UserEntity savedUser = userRepository.save(currentUser);
+//        return savedUser.toUserResponseDTO();
+//    }
 
     public List<UserResponseDTO> getAllUsers() {
         return userRepository.findAll().stream()
@@ -43,12 +54,30 @@ public class UserServiceImpl implements UserService {
         return userEntity != null ? userEntity.toUserResponseDTO() : null;
     }
 
-    public UserResponseDTO updateUser(UserUpdateDTO userDTO, HttpServletRequest request) {
-        UserEntity user = findUserByAccessToken(request);
-        user.updateByDto(userDTO);
-        UserEntity result = userRepository.save(user);
-        return result.toUserResponseDTO();
+    public UserResponseDTO updateProfile(UserEntity currentUser, UserUpdateDTO userUpdateDTO) {
+        currentUser.updateByDto(userUpdateDTO);
+        currentUser.getUserCategories().clear();
+
+        List<Category> categories = categoryRepository.findAllById(userUpdateDTO.getCategoryIds());
+
+        List<UserCategory> newUserCategories = categories.stream()
+                .map(category -> UserCategory.builder()
+                        .user(currentUser)
+                        .category(category)
+                        .build())
+                .toList();
+
+        currentUser.getUserCategories().addAll(newUserCategories);
+
+        UserEntity savedUser = userRepository.save(currentUser);
+        return savedUser.toUserResponseDTO();
     }
+
+//    public UserResponseDTO updateUser(UserEntity currentUser, UserUpdateDTO useUpdateDTO) {
+//        currentUser.updateByDto(useUpdateDTO);
+//        UserEntity savedUser = userRepository.save(currentUser);
+//        return savedUser.toUserResponseDTO();
+//    }
 
     public void deleteUser(HttpServletRequest request) {
         UserEntity user = findUserByAccessToken(request);
