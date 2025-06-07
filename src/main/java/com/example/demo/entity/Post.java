@@ -11,8 +11,10 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long postId;
 
-    private Long userId;
+    @Column(nullable = false)
+    private String userId; // userId를 String으로 변경 (socialKey 역할)
 
+    @Column(length = 255, nullable = false)
     private String title;
 
     @Lob
@@ -20,20 +22,20 @@ public class Post {
 
     private LocalDateTime createdAt;
 
-    private Long categoryId; // 카테고리 ID (별도의 카테고리 테이블 참조)
+    private Long categoryId;
 
-    private Integer viewCount = 0; // 조회수 필드 추가 및 기본값 설정
+    private Integer viewCount = 0;
 
-    // Getters and Setters
+    public Post() {}
 
     public Long getPostId() { return postId; }
     public void setPostId(Long postId) { this.postId = postId; }
 
-    public Long getUserId() { return userId; }
-    public void setUserId(Long userId) { this.userId = userId; }
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
 
-    public String getTitle() { return title; } // ★
-    public void setTitle(String title) { this.title = title; } // ★
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
 
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }

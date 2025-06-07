@@ -3,9 +3,7 @@ package com.example.demo.service;
 import com.example.demo.dto.PostDTO;
 import com.example.demo.dto.PostListDTO;
 import com.example.demo.entity.Post;
-import com.example.demo.entity.Photo;
 import com.example.demo.repository.PostRepository;
-import com.example.demo.repository.PhotoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -20,55 +18,34 @@ import java.util.stream.Collectors;
 public class PostService {
 
     private final PostRepository postRepository;
-    private final PhotoRepository photoRepository;
     private final S3Service s3Service;
 
     @Autowired
-    public PostService(PostRepository postRepository,
-                       PhotoRepository photoRepository,
-                       S3Service s3Service) {
+    public PostService(PostRepository postRepository, S3Service s3Service) {
         this.postRepository = postRepository;
-        this.photoRepository = photoRepository;
         this.s3Service = s3Service;
     }
 
-    /** 게시글 작성 (이미지 S3 업로드) */
+    /** 게시글 작성 (이미지 없음, JSON만) */
     @Transactional
     public PostDTO createPost(PostDTO postDTO, List<MultipartFile> files) {
         Post post = new Post();
-        post.setUserId(postDTO.getUserId());
+        post.setUserId(postDTO.getUserId()); // String userId
         post.setTitle(postDTO.getTitle());
         post.setContent(postDTO.getContent());
         post.setCreatedAt(LocalDateTime.now());
         post.setCategoryId(postDTO.getCategoryId());
         post.setViewCount(1);
-
         post = postRepository.save(post);
-
-        List<String> photoUrls = new ArrayList<>();
-        if (files != null) {
-            for (MultipartFile file : files) {
-                String url = s3Service.upload(file);
-
-                Photo photo = new Photo();
-                photo.setPostId(post.getPostId());
-                photo.setUserId(post.getUserId());
-                photo.setUrl(url);
-                photoRepository.save(photo);
-
-                photoUrls.add(url);
-            }
-        }
 
         postDTO.setPostId(post.getPostId());
         postDTO.setCreatedAt(post.getCreatedAt());
-        postDTO.setPhotoUrls(photoUrls);
+        postDTO.setPhotoUrls(Collections.emptyList()); // 파일정보는 관리하지 않음
         postDTO.setViewCount(post.getViewCount());
-
         return postDTO;
     }
 
-    /** 게시글 상세 조회 (사진 포함, 조회수 증가) */
+    /** 게시글 상세 조회 (조회수 증가, 첨부파일 없음) */
     @Transactional
     public PostDTO getPost(Long postId) {
         Optional<Post> optionalPost = postRepository.findById(postId);
@@ -79,9 +56,6 @@ public class PostService {
         post.setViewCount(post.getViewCount() + 1);
         postRepository.save(post);
 
-        List<Photo> photos = photoRepository.findAllByPostId(postId);
-        List<String> photoUrls = photos.stream().map(Photo::getUrl).collect(Collectors.toList());
-
         PostDTO dto = new PostDTO();
         dto.setPostId(post.getPostId());
         dto.setUserId(post.getUserId());
@@ -90,12 +64,12 @@ public class PostService {
         dto.setCreatedAt(post.getCreatedAt());
         dto.setCategoryId(post.getCategoryId());
         dto.setViewCount(post.getViewCount());
-        dto.setPhotoUrls(photoUrls);
+        dto.setPhotoUrls(Collections.emptyList()); // 첨부파일 관리 X
 
         return dto;
     }
 
-    /** 게시글 수정 (기존 사진 전체 삭제 후 새로 등록) */
+    /** 게시글 수정 (이미지 없음, 텍스트만) */
     @Transactional
     public PostDTO updatePost(PostDTO postDTO, List<MultipartFile> files) {
         Optional<Post> optionalPost = postRepository.findById(postDTO.getPostId());
@@ -103,34 +77,10 @@ public class PostService {
             return null;
         }
         Post post = optionalPost.get();
-
         post.setTitle(postDTO.getTitle());
         post.setContent(postDTO.getContent());
         post.setCategoryId(postDTO.getCategoryId());
         postRepository.save(post);
-
-        // 기존 사진 삭제(S3 포함)
-        List<Photo> existingPhotos = photoRepository.findAllByPostId(post.getPostId());
-        for (Photo photo : existingPhotos) {
-            s3Service.deleteFileByUrl(photo.getUrl());
-        }
-        photoRepository.deleteAll(existingPhotos);
-
-        // 새 파일 업로드 및 저장
-        List<String> photoUrls = new ArrayList<>();
-        if (files != null) {
-            for (MultipartFile file : files) {
-                String url = s3Service.upload(file);
-
-                Photo photo = new Photo();
-                photo.setPostId(post.getPostId());
-                photo.setUserId(post.getUserId());
-                photo.setUrl(url);
-                photoRepository.save(photo);
-
-                photoUrls.add(url);
-            }
-        }
 
         PostDTO resultDTO = new PostDTO();
         resultDTO.setPostId(post.getPostId());
@@ -139,7 +89,7 @@ public class PostService {
         resultDTO.setContent(post.getContent());
         resultDTO.setCreatedAt(post.getCreatedAt());
         resultDTO.setCategoryId(post.getCategoryId());
-        resultDTO.setPhotoUrls(photoUrls);
+        resultDTO.setPhotoUrls(Collections.emptyList());
         resultDTO.setViewCount(post.getViewCount());
 
         return resultDTO;
@@ -148,21 +98,6 @@ public class PostService {
     @Transactional(readOnly = true)
     public Page<PostListDTO> getPostsByCategory(Long categoryId, Pageable pageable) {
         Page<Post> posts = postRepository.findAllByCategoryId(categoryId, pageable);
-
-        List<Long> postIds = posts.getContent().stream()
-                .map(Post::getPostId)
-                .collect(Collectors.toList());
-
-        final Map<Long, List<String>> photoMap;
-        if (!postIds.isEmpty()) {
-            List<Photo> photos = photoRepository.findAllByPostIdIn(postIds);
-            photoMap = photos.stream().collect(Collectors.groupingBy(
-                    Photo::getPostId,
-                    Collectors.mapping(Photo::getUrl, Collectors.toList())
-            ));
-        } else {
-            photoMap = Collections.emptyMap();
-        }
 
         return posts.map(post -> {
             PostListDTO dto = new PostListDTO();
@@ -173,12 +108,12 @@ public class PostService {
             dto.setCreatedAt(post.getCreatedAt());
             dto.setCategoryId(post.getCategoryId());
             dto.setViewCount(post.getViewCount());
-            dto.setPhotoUrls(photoMap.getOrDefault(post.getPostId(), Collections.emptyList()));
+            dto.setPhotoUrls(Collections.emptyList());
             return dto;
         });
     }
 
-    /** 게시글 삭제 (사진 및 S3 삭제 포함) */
+    /** 게시글 삭제 (첨부파일 없음, S3 연동도 필요 없음) */
     @Transactional
     public void deletePost(Long id) {
         Optional<Post> optionalPost = postRepository.findById(id);
@@ -186,13 +121,23 @@ public class PostService {
             throw new NoSuchElementException("게시글이 존재하지 않습니다.");
         }
         Post post = optionalPost.get();
-
-        List<Photo> photos = photoRepository.findAllByPostId(post.getPostId());
-        for (Photo photo : photos) {
-            s3Service.deleteFileByUrl(photo.getUrl());
-        }
-        photoRepository.deleteAll(photos);
-
         postRepository.delete(post);
+    }
+
+    /** 이미지 업로드: S3에만 저장, DB 저장 없음 */
+    @Transactional
+    public List<String> uploadImages(Long postId, List<MultipartFile> files, String userId) {
+        List<String> photoUrls = new ArrayList<>();
+        for (MultipartFile file : files) {
+            String url = s3Service.upload(file);
+            photoUrls.add(url); // DB 저장 없이 URL만 반환
+        }
+        return photoUrls;
+    }
+
+    /** 이미지 삭제: S3에서만 삭제, DB에는 영향 없음 */
+    @Transactional
+    public void deleteImageByUrl(String fileUrl) {
+        s3Service.deleteFileByUrl(fileUrl);
     }
 }
