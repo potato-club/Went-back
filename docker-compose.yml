@@ -1,6 +1,18 @@
 version: "3.8"
 
 services:
+  db:
+    image: mysql:8.0
+    container_name: went-mysql
+    environment:
+      MYSQL_DATABASE: went_db
+      MYSQL_USER: went_user
+      MYSQL_PASSWORD: wentdbuser714
+      MYSQL_ROOT_PASSWORD: rootpw
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+
   redis:
     image: redis:7.2
     container_name: went-redis
@@ -16,6 +28,7 @@ services:
     ports:
       - "8080:80"
     depends_on:
+      - db
       - redis
     env_file:
       - .env

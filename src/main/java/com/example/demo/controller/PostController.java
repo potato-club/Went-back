@@ -4,9 +4,8 @@ import com.example.demo.dto.PostDTO;
 import com.example.demo.dto.PostListDTO;
 import com.example.demo.service.PostService;
 import com.example.demo.service.S3Service;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.example.demo.dto.response.UserResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
@@ -15,10 +14,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 
-@Tag(name = "Post API", description = "게시글 및 이미지 API")
+@Tag(name = "Post API", description = "게시글 CRUD 및 이미지 파일 업로드/삭제 (S3만 사용, DB 저장 없음)")
 @RestController
 @RequestMapping("/api/posts")
 public class PostController {
@@ -32,69 +30,63 @@ public class PostController {
         this.s3Service = s3Service;
     }
 
+    // -------- 게시글 CRUD --------
+
     @Operation(
-            summary = "게시글 작성 (이미지 첨부된 파일만 S3에 업로드)",
+            summary = "게시글 작성",
             description = """
-            - post 예시: {"userId": 1, "categoryId": 2, "title": "제목 테스트", "content": "테스트"}
-            - files: 여러 장 업로드 가능합니다.
+            - 제목/내용/카테고리 입력해서 게시글 등록
+            - Swagger: Try it out → JSON 입력 → Execute
+            - 예시: { "title": "제목", "content": "내용", "categoryId": 1 }
         """
     )
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PostDTO> createPost(
-            @RequestPart("post") String post,
-            @RequestPart(value = "files", required = false) List<MultipartFile> files
-    ) throws Exception {
-        ObjectMapper objectMapper = new ObjectMapper();
-        PostDTO postDTO = objectMapper.readValue(post, PostDTO.class);
-        PostDTO created = postService.createPost(postDTO, files);
+            @RequestBody PostDTO postDTO,
+            @RequestAttribute(value = "user", required = false) UserResponseDTO user
+    ) {
+        if (user == null) {
+            user = UserResponseDTO.builder().socialKey("test-key").build();
+        }
+        postDTO.setUserId(user.getSocialKey());
+        PostDTO created = postService.createPost(postDTO, null);
         return ResponseEntity.ok(created);
+    }
+
+    @Operation(
+            summary = "게시글 수정",
+            description = """
+            - 게시글 정보(제목/내용/카테고리)만 수정
+            - Swagger: Try it out → id 입력 → JSON 입력 → Execute
+        """
+    )
+    @PostMapping(value = "/{id}/edit", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<PostDTO> updatePost(
+            @PathVariable Long id,
+            @RequestBody PostDTO postDTO,
+            @RequestAttribute(value = "user", required = false) UserResponseDTO user
+    ) {
+        if (user == null) {
+            user = UserResponseDTO.builder().socialKey("test-key").build();
+        }
+        postDTO.setPostId(id);
+        postDTO.setUserId(user.getSocialKey());
+        PostDTO updatedPost = postService.updatePost(postDTO, null);
+        return updatedPost != null ? ResponseEntity.ok(updatedPost) : ResponseEntity.notFound().build();
     }
 
     @Operation(
             summary = "카테고리별 게시글 목록 조회",
             description = """
-            📢 **사용 가이드**
-            1. 먼저 /categories API를 호출해서 카테고리 목록 및 id를 확인하세요.
-            2. 아래 파라미터에 원하는 카테고리 id를 입력해 게시글을 조회할 수 있습니다.
-
-            ▷ **정렬 기준(sort) 옵션**
-              - recent   : 최신순 (기본값)
-              - likes    : 좋아요순
-              - comments : 댓글순
-              - stars    : 별점순
-              - views    : 조회수순
-              - oldest   : 오래된순
-
-            ▷ **예시 요청**
-            ```
-            /api/posts/list?category=1&sort=likes&page=0&size=8
-            ```
-            (category는 필수, 나머지는 선택)
+            - 원하는 카테고리/정렬/페이지로 게시글 조회
+            - Swagger: Try it out → 파라미터 입력 → Execute
         """
     )
     @GetMapping("/list")
     public ResponseEntity<Page<PostListDTO>> getFilteredPosts(
-            @Parameter(description = "카테고리 ID (반드시 /categories에서 조회한 id 사용)", example = "1", required = true)
             @RequestParam String category,
-
-            @Parameter(
-                    description = """
-                    정렬 기준:
-                    - recent(최신순, 기본값)
-                    - likes(좋아요순)
-                    - comments(댓글순)
-                    - stars(별점순)
-                    - views(조회수순)
-                    - oldest(오래된순)
-                """,
-                    example = "likes"
-            )
             @RequestParam(defaultValue = "recent") String sort,
-
-            @Parameter(description = "페이지 번호 (0부터 시작, 기본값=0)", example = "0")
             @RequestParam(defaultValue = "0") int page,
-
-            @Parameter(description = "페이지 크기 (한 페이지 당 게시글 수, 기본값=8)", example = "8")
             @RequestParam(defaultValue = "8") int size
     ) {
         Pageable pageable = PageRequest.of(page, size, getSortOption(sort));
@@ -107,7 +99,6 @@ public class PostController {
         }
     }
 
-    /** 요청한 정렬 기준에 맞게 Sort 객체 반환 */
     private Sort getSortOption(String sort) {
         return switch (sort) {
             case "likes" -> Sort.by(Sort.Direction.DESC, "likes");
@@ -120,67 +111,80 @@ public class PostController {
     }
 
     @Operation(
-            summary = "게시글 단건 조회 (조회 시 조회수 1 증가)",
+            summary = "게시글 상세 조회",
             description = """
-            - path parameter {id}에 게시글의 고유 ID를 입력하세요.
-            - 해당 게시글을 조회할 때마다 조회수가 1씩 증가합니다.
-            - 예: /api/posts/10
-            - 존재하지 않는 id로 조회 시 404 Not Found 반환
+            - 게시글 번호로 단일 게시글 조회
+            - Swagger: Try it out → id 입력 → Execute
         """
     )
     @GetMapping("/{id}")
-    public ResponseEntity<PostDTO> getPost(
-            @Parameter(description = "게시글 고유 ID", example = "10", required = true)
-            @PathVariable Long id) {
+    public ResponseEntity<PostDTO> getPost(@PathVariable Long id) {
         PostDTO postDTO = postService.getPost(id);
         return postDTO != null ? ResponseEntity.ok(postDTO) : ResponseEntity.notFound().build();
     }
 
     @Operation(
-            summary = "게시글 수정 (파일 포함)",
-            description = """
-            - 게시글 고유 id({id})에 해당하는 게시글을 수정합니다.
-            - 본문 및 제목 등 post 정보와, 파일(이미지 등)을 함께 수정할 수 있습니다.
-            - 파일을 새로 첨부하면 기존 파일이 교체되거나 추가됩니다.
-            - 첨부 파일 없이도 수정 가능 (files 파트는 생략 가능)
-            - 요청 예시:
-              - post: JSON 문자열(예: {"title":"수정 제목",  "categoryId": 수정 아이디, "content":"수정 본문",...})
-              - files: 이미지 파일(선택)
-            - 존재하지 않는 게시글 id로 수정 시 404 Not Found 반환
-        """
-    )
-    @PostMapping(value = "/{id}/edit", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<PostDTO> updatePost(
-            @PathVariable Long id,
-            @RequestPart("post") String post,
-            @RequestPart(value = "files", required = false) List<MultipartFile> files
-    ) throws Exception {
-        ObjectMapper objectMapper = new ObjectMapper();
-        PostDTO postDTO = objectMapper.readValue(post, PostDTO.class);
-        postDTO.setPostId(id);
-        PostDTO updatedPost = postService.updatePost(postDTO, files);
-        return updatedPost != null ? ResponseEntity.ok(updatedPost) : ResponseEntity.notFound().build();
-    }
-
-    @Operation(
             summary = "게시글 삭제",
             description = """
-            - 게시글 고유 id({id})에 해당하는 게시글을 삭제합니다.
-            - 존재하지 않는 게시글 id로 요청할 경우 404 Not Found 반환
-            - 삭제 성공 시 204 No Content 응답(본문 없음)
-            - 연관된 첨부파일 등도 함께 삭제 처리됨
-            - 예시 요청: /api/posts/10 (DELETE)
+            - 게시글 번호로 삭제
+            - Swagger: Try it out → id 입력 → Execute
         """
     )
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePost(
-            @Parameter(description = "삭제할 게시글의 고유 ID", example = "10", required = true)
-            @PathVariable Long id) {
+    public ResponseEntity<Void> deletePost(@PathVariable Long id) {
         try {
             postService.deletePost(id);
             return ResponseEntity.noContent().build();
         } catch (NoSuchElementException e) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    // -------- 이미지 파일 업로드(S3만) --------
+
+    @Operation(
+            summary = "이미지 파일 업로드",
+            description = """
+            - 게시글과 무관하게 이미지(파일)만 업로드, DB 저장 없이 S3에만 저장
+            - Swagger: Try it out → files에서 여러 장 선택 → Execute
+            - 응답: 업로드된 이미지의 URL 리스트 반환
+        """
+    )
+    @PostMapping(value = "/images/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<List<String>> uploadImagesOnly(
+            @RequestParam("files") List<MultipartFile> files,
+            @RequestAttribute(value = "user", required = false) UserResponseDTO user
+    ) {
+        if (user == null) {
+            user = UserResponseDTO.builder().socialKey("test-key").build();
+        }
+        List<String> urls = new ArrayList<>();
+        for (MultipartFile file : files) {
+            String url = s3Service.upload(file);
+            urls.add(url); // Photo DB에 저장하지 않음!
+        }
+        return ResponseEntity.ok(urls);
+    }
+
+    // -------- 이미지 파일 삭제(S3만) --------
+
+    @Operation(
+            summary = "이미지 파일 삭제 (경로로)",
+            description = """
+            - 업로드한 이미지의 URL(전체 경로)을 그대로 넘기면 삭제 (DB 작업 없음)
+            - Swagger: Try it out → url에 삭제할 파일 전체경로 입력 → Execute
+            - 성공 시 204 No Content
+        """
+    )
+    @DeleteMapping("/images")
+    public ResponseEntity<Void> deleteImageByUrl(
+            @RequestParam("url") String fileUrl,
+            @RequestAttribute(value = "user", required = false) UserResponseDTO user
+    ) {
+        if (user == null) {
+            user = UserResponseDTO.builder().socialKey("test-key").build();
+        }
+        s3Service.deleteFileByUrl(fileUrl); // DB 작업 없음!
+        return ResponseEntity.noContent().build();
     }
 }
