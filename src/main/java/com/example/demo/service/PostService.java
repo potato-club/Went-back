@@ -73,7 +73,7 @@ public class PostService {
 
     // 작성자별 조회
     public List<PostResponseDTO> getPostsByUser(Long userId) {
-        return postRepository.findByWriterId(userId).stream()
+        return postRepository.findByWriterUserId(userId).stream()
                 .map(postMapper::toPostResponseDto)
                 .collect(Collectors.toList());
     }
@@ -116,7 +116,7 @@ public class PostService {
         Category category = categoryRepository.findByName(categoryName)
                 .orElseThrow(() -> new IllegalArgumentException("카테고리 없음"));
 
-        Page<Post> posts = postRepository.findByCategoryId(category.getCategoryId(), pageable);
+        Page<Post> posts = postRepository.findByCategoryCategoryId(category.getCategoryId(), pageable);
 
         return posts.map(post -> {
             PostListDTO dto = new PostListDTO();
