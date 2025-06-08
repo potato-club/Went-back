@@ -27,4 +27,13 @@ public class UserCategory {
         this.user = user;
         this.category = category;
     }
+
+    public void assignUser(UserEntity user) {
+        this.user = user;
+    }
+
+    public void assignCategory(Category category) {
+        this.category = category;
+    }
+
 }
