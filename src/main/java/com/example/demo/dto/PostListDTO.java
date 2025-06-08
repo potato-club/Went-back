@@ -10,7 +10,6 @@ public class PostListDTO {
     private String content;
     private LocalDateTime createdAt;
     private Long categoryId;
-    private List<String> photoUrls;
     private Integer viewCount;
     private Integer commentCount;
     private Integer stars; // 별점 필드 추가
@@ -36,8 +35,6 @@ public class PostListDTO {
     public Long getCategoryId() { return categoryId; }
     public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
 
-    public List<String> getPhotoUrls() { return photoUrls; }
-    public void setPhotoUrls(List<String> photoUrls) { this.photoUrls = photoUrls; }
 
     public Integer getViewCount() { return viewCount; }
     public void setViewCount(Integer viewCount) { this.viewCount = viewCount; }

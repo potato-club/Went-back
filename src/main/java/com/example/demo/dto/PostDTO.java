@@ -9,7 +9,6 @@ public class PostDTO {
     private String content;
     private LocalDateTime createdAt;
     private Long categoryId;
-    private List<String> photoUrls;
     private String title;
     private int viewCount;
     private Integer stars;
@@ -31,9 +30,6 @@ public class PostDTO {
 
     public Long getCategoryId() { return categoryId; }
     public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
-
-    public List<String> getPhotoUrls() { return photoUrls; }
-    public void setPhotoUrls(List<String> photoUrls) { this.photoUrls = photoUrls; }
 
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
