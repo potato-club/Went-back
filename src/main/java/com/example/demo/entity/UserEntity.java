@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
@@ -55,46 +56,28 @@ public class UserEntity {
     }
 
     public UserResponseDTO toUserResponseDTO() {
-        List<Long> categoryIds = userCategories.stream()
-                .map(userCategory -> userCategory.getCategory().getCategoryId())
-                .toList();
-
         return UserResponseDTO.builder()
-                .socialKey(this.socialKey)
-                .nickname(this.nickname)
                 .email(this.email)
+                .nickname(this.nickname)
                 .birthDate(this.birthDate)
                 .region(this.region)
-                .categoryIds(categoryIds)
+                .categoryIds(this.userCategories.stream()
+                        .map(uc -> uc.getCategory().getCategoryId())
+                        .collect(Collectors.toList()))
                 .build();
     }
 
     public UserResponseDTO toUserLoginResponseDTO() {
-        List<Long> categoryIds = userCategories.stream()
-                .map(userCategory -> userCategory.getCategory().getCategoryId())
-                .toList();
-
         return UserResponseDTO.builder()
                 .nickname(this.nickname)
                 .email(this.email)
                 .birthDate(this.birthDate)
                 .region(this.region)
-                .categoryIds(categoryIds)
+                .categoryIds(this.userCategories.stream()
+                        .map(uc -> uc.getCategory().getCategoryId())
+                        .collect(Collectors.toList()))
                 .build();
     }
-
-    // 회원가입 후, 추가 정보 입력
-//    public void setupInitialProfile(UserUpdateDTO userUpdateDTO, List<Category> categories) {
-//        updateByDto(userUpdateDTO);
-//
-//        List<UserCategory> userCategories = categories.stream()
-//                .map(category -> UserCategory.builder()
-//                        .user(this)
-//                        .category(category)
-//                        .build())
-//                .toList();
-//        this.userCategories.addAll(userCategories);
-//    }
 
     public UserEntity updateByDto(UserUpdateDTO userUpdateDTO) {
         this.birthDate = LocalDate.parse(userUpdateDTO.getBirthDate());
