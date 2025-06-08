@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.response.MyProfileResponseDTO;
 import com.example.demo.dto.response.UserResponseDTO;
 import com.example.demo.dto.UserUniqueDTO;
 import com.example.demo.dto.UserUpdateDTO;
@@ -31,13 +32,12 @@ public class UserController {
         return ResponseEntity.ok(userResponseDTO);
     }
 
-
-//    @Operation(summary = "사용자 추가 정보 입력", description = "회원가입 후, 추가 정보를 입력합니다.")
-//    @PostMapping
-//    public ResponseEntity<UserResponseDTO> createProfile(@RequestBody UserUpdateDTO userUpdateDTO, @CurrentUser UserEntity currentUser) {
-//        UserResponseDTO userResponseDTO = userService.createProfile(currentUser, userUpdateDTO);
-//        return ResponseEntity.ok(userResponseDTO);
-//    }
+    @Operation(summary = "마이페이지 조회", description = "로그인된 사용자의 마이페이지 정보를 조회합니다.")
+    @GetMapping("/me")
+    public ResponseEntity<MyProfileResponseDTO> getMyProfile(@CurrentUser UserEntity currentUser) {
+        MyProfileResponseDTO myProfileResponseDTO = userService.getMyProfile(currentUser);
+        return ResponseEntity.ok(myProfileResponseDTO);
+    }
 
     @Operation(summary = "전체 사용자 조회", description = "등록된 모든 사용자를 조회합니다.")
     @GetMapping
@@ -58,13 +58,6 @@ public class UserController {
         UserResponseDTO userDTO = userService.findUser(userUniqueDTO);
         return userDTO != null ? ResponseEntity.ok(userDTO) : ResponseEntity.notFound().build();
     }
-
-//    @Operation(summary = "사용자 정보 수정", description = "사용자 정보를 수정합니다.")
-//    @PutMapping
-//    public ResponseEntity<UserResponseDTO> updateUser(@RequestBody UserUpdateDTO userUpdateDTO, @CurrentUser UserEntity currentUser) {
-//        UserResponseDTO updatedUser = userService.updateUser(currentUser, userUpdateDTO);
-//        return ResponseEntity.ok(updatedUser);
-//    }
 
     @Operation(summary = "사용자 삭제", description = "로그인된 사용자를 삭제합니다.")
     @DeleteMapping

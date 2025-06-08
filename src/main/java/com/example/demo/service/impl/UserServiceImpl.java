@@ -1,5 +1,6 @@
 package com.example.demo.service.impl;
 
+import com.example.demo.dto.response.MyProfileResponseDTO;
 import com.example.demo.dto.response.UserResponseDTO;
 import com.example.demo.dto.UserUniqueDTO;
 import com.example.demo.dto.UserUpdateDTO;
@@ -9,6 +10,7 @@ import com.example.demo.entity.UserEntity;
 import com.example.demo.error.*;
 import com.example.demo.jwt.JwtProvider;
 import com.example.demo.jwt.JwtToken;
+import com.example.demo.mapper.UserMapper;
 import com.example.demo.repository.CategoryRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.UserService;
@@ -26,13 +28,30 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final JwtProvider jwtProvider;
     private final CategoryRepository categoryRepository;
+    private final UserMapper userMapper;
 
-//    public UserResponseDTO createProfile(UserEntity currentUser, UserUpdateDTO userUpdateDTO) {
-//       List<Category> categories = categoryRepository.findAllById(userUpdateDTO.getCategoryIds());
-//        currentUser.setupInitialProfile(userUpdateDTO, categories);
-//        UserEntity savedUser = userRepository.save(currentUser);
-//        return savedUser.toUserResponseDTO();
-//    }
+    // 추가 정보 입력 및 프로필 수정
+    public UserResponseDTO updateProfile(UserEntity currentUser, UserUpdateDTO userUpdateDTO) {
+        currentUser.updateByDto(userUpdateDTO);
+        currentUser.getUserCategories().clear();
+
+        List<Category> categories = categoryRepository.findAllById(userUpdateDTO.getCategoryIds());
+
+        categories.forEach(category -> {
+            UserCategory uc = new UserCategory();
+            uc.assignUser(currentUser);   // 현재 유저와 연결
+            uc.assignCategory(category);  // 카테고리와 연결
+            currentUser.getUserCategories().add(uc);
+        });
+
+        UserEntity savedUser = userRepository.save(currentUser);
+        return savedUser.toUserResponseDTO();
+    }
+
+    // 마이페이지
+    public MyProfileResponseDTO getMyProfile(UserEntity currentUser) {
+        return userMapper.toMyProfileResponseDTO(currentUser);
+    }
 
     public List<UserResponseDTO> getAllUsers() {
         return userRepository.findAll().stream()
@@ -54,24 +73,7 @@ public class UserServiceImpl implements UserService {
         return userEntity != null ? userEntity.toUserResponseDTO() : null;
     }
 
-    public UserResponseDTO updateProfile(UserEntity currentUser, UserUpdateDTO userUpdateDTO) {
-        currentUser.updateByDto(userUpdateDTO);
-        currentUser.getUserCategories().clear();
 
-        List<Category> categories = categoryRepository.findAllById(userUpdateDTO.getCategoryIds());
-
-        List<UserCategory> newUserCategories = categories.stream()
-                .map(category -> UserCategory.builder()
-                        .user(currentUser)
-                        .category(category)
-                        .build())
-                .toList();
-
-        currentUser.getUserCategories().addAll(newUserCategories);
-
-        UserEntity savedUser = userRepository.save(currentUser);
-        return savedUser.toUserResponseDTO();
-    }
 
 //    public UserResponseDTO updateUser(UserEntity currentUser, UserUpdateDTO useUpdateDTO) {
 //        currentUser.updateByDto(useUpdateDTO);
