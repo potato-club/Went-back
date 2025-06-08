@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.PostDTO;
 import com.example.demo.dto.PostListDTO;
+import com.example.demo.dto.PostCreateRequest;
 import com.example.demo.service.PostService;
 import com.example.demo.service.S3Service;
 import com.example.demo.dto.response.UserResponseDTO;
@@ -16,7 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 
-@Tag(name = "Post API", description = "게시글 CRUD 및 이미지 파일 업로드/삭제 (S3만 사용, DB 저장 없음)")
+@Tag(name = "Post API", description = "게시글 CRUD, 별점/썸네일, 이미지 S3 업로드/삭제 (DB 저장 없음)")
 @RestController
 @RequestMapping("/api/posts")
 public class PostController {
@@ -35,20 +36,35 @@ public class PostController {
     @Operation(
             summary = "게시글 작성",
             description = """
-            - 제목/내용/카테고리 입력해서 게시글 등록
+            - 제목/내용/카테고리/별점/썸네일URL로 게시글 등록
             - Swagger: Try it out → JSON 입력 → Execute
-            - 예시: { "title": "제목", "content": "내용", "categoryId": 1 }
-        """
+            - 예시:
+            {
+              "title": "맛집 후기",
+              "content": "추천!",
+              "categoryId": 1,
+              "stars": 5,
+              "thumbnailUrl": "https://your-s3-url/thumbnail.jpg"
+            }
+            ※ thumbnailUrl은 이미지 업로드 후 받아온 S3 URL 중 하나를 직접 입력!
+            """
     )
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PostDTO> createPost(
-            @RequestBody PostDTO postDTO,
+            @RequestBody PostCreateRequest req,
             @RequestAttribute(value = "user", required = false) UserResponseDTO user
     ) {
         if (user == null) {
             user = UserResponseDTO.builder().socialKey("test-key").build();
         }
+        PostDTO postDTO = new PostDTO();
+        postDTO.setTitle(req.getTitle());
+        postDTO.setContent(req.getContent());
+        postDTO.setCategoryId(req.getCategoryId());
+        postDTO.setStars(req.getStars());
         postDTO.setUserId(user.getSocialKey());
+        postDTO.setThumbnailUrl(req.getThumbnailUrl()); // 썸네일 URL
+
         PostDTO created = postService.createPost(postDTO, null);
         return ResponseEntity.ok(created);
     }
@@ -56,21 +72,37 @@ public class PostController {
     @Operation(
             summary = "게시글 수정",
             description = """
-            - 게시글 정보(제목/내용/카테고리)만 수정
+            - 게시글 정보(제목/내용/카테고리/별점/썸네일)만 수정
             - Swagger: Try it out → id 입력 → JSON 입력 → Execute
-        """
+            - 예시:
+            {
+              "title": "수정된 후기",
+              "content": "맛있음!",
+              "categoryId": 2,
+              "stars": 4,
+              "thumbnailUrl": "https://your-s3-url/new-thumb.jpg"
+            }
+            ※ thumbnailUrl은 새로 업로드한 이미지의 URL 사용 가능
+            """
     )
     @PostMapping(value = "/{id}/edit", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PostDTO> updatePost(
             @PathVariable Long id,
-            @RequestBody PostDTO postDTO,
+            @RequestBody PostCreateRequest req,
             @RequestAttribute(value = "user", required = false) UserResponseDTO user
     ) {
         if (user == null) {
             user = UserResponseDTO.builder().socialKey("test-key").build();
         }
+        PostDTO postDTO = new PostDTO();
         postDTO.setPostId(id);
+        postDTO.setTitle(req.getTitle());
+        postDTO.setContent(req.getContent());
+        postDTO.setCategoryId(req.getCategoryId());
+        postDTO.setStars(req.getStars());
         postDTO.setUserId(user.getSocialKey());
+        postDTO.setThumbnailUrl(req.getThumbnailUrl());
+
         PostDTO updatedPost = postService.updatePost(postDTO, null);
         return updatedPost != null ? ResponseEntity.ok(updatedPost) : ResponseEntity.notFound().build();
     }
@@ -78,9 +110,10 @@ public class PostController {
     @Operation(
             summary = "카테고리별 게시글 목록 조회",
             description = """
-            - 원하는 카테고리/정렬/페이지로 게시글 조회
+            - 원하는 카테고리, 정렬, 페이지로 게시글 조회 (별점/썸네일 포함)
             - Swagger: Try it out → 파라미터 입력 → Execute
-        """
+            - sort 옵션: recent, likes, comments, stars, views, oldest
+            """
     )
     @GetMapping("/list")
     public ResponseEntity<Page<PostListDTO>> getFilteredPosts(
@@ -113,9 +146,9 @@ public class PostController {
     @Operation(
             summary = "게시글 상세 조회",
             description = """
-            - 게시글 번호로 단일 게시글 조회
+            - 게시글 번호로 단일 게시글 조회 (별점, 썸네일 포함)
             - Swagger: Try it out → id 입력 → Execute
-        """
+            """
     )
     @GetMapping("/{id}")
     public ResponseEntity<PostDTO> getPost(@PathVariable Long id) {
@@ -128,7 +161,7 @@ public class PostController {
             description = """
             - 게시글 번호로 삭제
             - Swagger: Try it out → id 입력 → Execute
-        """
+            """
     )
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePost(@PathVariable Long id) {
@@ -143,12 +176,13 @@ public class PostController {
     // -------- 이미지 파일 업로드(S3만) --------
 
     @Operation(
-            summary = "이미지 파일 업로드",
+            summary = "이미지 파일 업로드 (S3만)",
             description = """
-            - 게시글과 무관하게 이미지(파일)만 업로드, DB 저장 없이 S3에만 저장
+            - 이미지 파일만 업로드, DB 저장 없이 S3에만 저장
             - Swagger: Try it out → files에서 여러 장 선택 → Execute
             - 응답: 업로드된 이미지의 URL 리스트 반환
-        """
+            - *업로드 후 원하는 썸네일 이미지는 URL 복사해서 게시글 작성 시 thumbnailUrl로 입력!*
+            """
     )
     @PostMapping(value = "/images/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<List<String>> uploadImagesOnly(
@@ -161,7 +195,7 @@ public class PostController {
         List<String> urls = new ArrayList<>();
         for (MultipartFile file : files) {
             String url = s3Service.upload(file);
-            urls.add(url); // Photo DB에 저장하지 않음!
+            urls.add(url);
         }
         return ResponseEntity.ok(urls);
     }
@@ -171,10 +205,10 @@ public class PostController {
     @Operation(
             summary = "이미지 파일 삭제 (경로로)",
             description = """
-            - 업로드한 이미지의 URL(전체 경로)을 그대로 넘기면 삭제 (DB 작업 없음)
+            - 업로드한 이미지의 S3 URL(전체 경로)만 넘기면 삭제 (DB 작업 없음)
             - Swagger: Try it out → url에 삭제할 파일 전체경로 입력 → Execute
             - 성공 시 204 No Content
-        """
+            """
     )
     @DeleteMapping("/images")
     public ResponseEntity<Void> deleteImageByUrl(
@@ -184,7 +218,7 @@ public class PostController {
         if (user == null) {
             user = UserResponseDTO.builder().socialKey("test-key").build();
         }
-        s3Service.deleteFileByUrl(fileUrl); // DB 작업 없음!
+        s3Service.deleteFileByUrl(fileUrl);
         return ResponseEntity.noContent().build();
     }
 }

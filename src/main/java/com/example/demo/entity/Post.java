@@ -26,6 +26,11 @@ public class Post {
 
     private Integer viewCount = 0;
 
+    private Integer stars; // 별점 필드
+
+    @Column(length = 512)
+    private String thumbnailUrl; // 썸네일(대표 이미지) URL 필드 추가
+
     public Post() {}
 
     public Long getPostId() { return postId; }
@@ -48,4 +53,10 @@ public class Post {
 
     public Integer getViewCount() { return viewCount; }
     public void setViewCount(Integer viewCount) { this.viewCount = viewCount; }
+
+    public Integer getStars() { return stars; }
+    public void setStars(Integer stars) { this.stars = stars; }
+
+    public String getThumbnailUrl() { return thumbnailUrl; }
+    public void setThumbnailUrl(String thumbnailUrl) { this.thumbnailUrl = thumbnailUrl; }
 }

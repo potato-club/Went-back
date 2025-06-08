@@ -12,6 +12,8 @@ public class PostDTO {
     private List<String> photoUrls;
     private String title;
     private int viewCount;
+    private Integer stars;
+    private String thumbnailUrl;// 별점 필드 추가
 
     public PostDTO() {}
 
@@ -38,4 +40,10 @@ public class PostDTO {
 
     public int getViewCount() { return viewCount; }
     public void setViewCount(int viewCount) { this.viewCount = viewCount; }
+
+    public Integer getStars() { return stars; }            // Getter
+    public void setStars(Integer stars) { this.stars = stars; } // Setter
+
+    public String getThumbnailUrl() { return thumbnailUrl; }
+    public void setThumbnailUrl(String thumbnailUrl) { this.thumbnailUrl = thumbnailUrl; }
 }

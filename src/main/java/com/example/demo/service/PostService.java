@@ -12,7 +12,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class PostService {
@@ -26,26 +25,33 @@ public class PostService {
         this.s3Service = s3Service;
     }
 
-    /** 게시글 작성 (이미지 없음, JSON만) */
+    /** 게시글 작성 (별점, 썸네일 포함, 이미지 DB 저장 X) */
     @Transactional
     public PostDTO createPost(PostDTO postDTO, List<MultipartFile> files) {
         Post post = new Post();
-        post.setUserId(postDTO.getUserId()); // String userId
+        post.setUserId(postDTO.getUserId());
         post.setTitle(postDTO.getTitle());
         post.setContent(postDTO.getContent());
         post.setCreatedAt(LocalDateTime.now());
         post.setCategoryId(postDTO.getCategoryId());
+        post.setStars(postDTO.getStars());
         post.setViewCount(1);
+        // 썸네일 DB 미사용이므로 setThumbnailUrl 필요 없음
+
         post = postRepository.save(post);
 
+        // 반환 DTO
         postDTO.setPostId(post.getPostId());
         postDTO.setCreatedAt(post.getCreatedAt());
-        postDTO.setPhotoUrls(Collections.emptyList()); // 파일정보는 관리하지 않음
         postDTO.setViewCount(post.getViewCount());
+        postDTO.setStars(post.getStars());
+        // 썸네일: 프론트에서 받은 값 그대로 응답
+        // (DB에 저장은 안 하지만 응답에 포함)
+        // (필요하다면 req에서 받아서 넣은 값 사용)
         return postDTO;
     }
 
-    /** 게시글 상세 조회 (조회수 증가, 첨부파일 없음) */
+    /** 게시글 상세 조회 (별점, 썸네일 포함) */
     @Transactional
     public PostDTO getPost(Long postId) {
         Optional<Post> optionalPost = postRepository.findById(postId);
@@ -64,12 +70,13 @@ public class PostService {
         dto.setCreatedAt(post.getCreatedAt());
         dto.setCategoryId(post.getCategoryId());
         dto.setViewCount(post.getViewCount());
-        dto.setPhotoUrls(Collections.emptyList()); // 첨부파일 관리 X
-
+        dto.setStars(post.getStars());
+        // 썸네일: DB 미사용, 필요 시 프론트가 보내주는 값을 컨트롤러/서비스에서 넘길 수 있음
+        // dto.setThumbnailUrl(프론트에서 전달된 값 또는 null);
         return dto;
     }
 
-    /** 게시글 수정 (이미지 없음, 텍스트만) */
+    /** 게시글 수정 (별점, 썸네일 포함) */
     @Transactional
     public PostDTO updatePost(PostDTO postDTO, List<MultipartFile> files) {
         Optional<Post> optionalPost = postRepository.findById(postDTO.getPostId());
@@ -80,6 +87,9 @@ public class PostService {
         post.setTitle(postDTO.getTitle());
         post.setContent(postDTO.getContent());
         post.setCategoryId(postDTO.getCategoryId());
+        post.setStars(postDTO.getStars());
+        // 썸네일 DB 미사용, 별도 처리 안함
+
         postRepository.save(post);
 
         PostDTO resultDTO = new PostDTO();
@@ -89,9 +99,9 @@ public class PostService {
         resultDTO.setContent(post.getContent());
         resultDTO.setCreatedAt(post.getCreatedAt());
         resultDTO.setCategoryId(post.getCategoryId());
-        resultDTO.setPhotoUrls(Collections.emptyList());
         resultDTO.setViewCount(post.getViewCount());
-
+        resultDTO.setStars(post.getStars());
+        // resultDTO.setThumbnailUrl(postDTO.getThumbnailUrl());
         return resultDTO;
     }
 
@@ -108,7 +118,9 @@ public class PostService {
             dto.setCreatedAt(post.getCreatedAt());
             dto.setCategoryId(post.getCategoryId());
             dto.setViewCount(post.getViewCount());
-            dto.setPhotoUrls(Collections.emptyList());
+            dto.setStars(post.getStars());
+            // 썸네일: 프론트에서 필요하면 별도 관리
+            // dto.setThumbnailUrl(null);
             return dto;
         });
     }
@@ -130,7 +142,7 @@ public class PostService {
         List<String> photoUrls = new ArrayList<>();
         for (MultipartFile file : files) {
             String url = s3Service.upload(file);
-            photoUrls.add(url); // DB 저장 없이 URL만 반환
+            photoUrls.add(url);
         }
         return photoUrls;
     }
