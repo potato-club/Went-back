@@ -25,21 +25,25 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
         HttpServletRequest httpRequest = (HttpServletRequest)request;
         String requestURI = httpRequest.getRequestURI();
 
-        // Swagger 경로 허용
-        if (requestURI.startsWith("/swagger-ui/") || requestURI.startsWith("/v3/api-docs/") || requestURI.startsWith("/api/users")) {
+        if (requestURI.startsWith("/swagger-ui/") || requestURI.startsWith("/v3/api-docs/") || requestURI.equals("/api/auth/google") || requestURI.equals("/api/auth/kakao")) {
             chain.doFilter(request, response);
             return;
         }
-
-        if (requestURI.equals("/api/auth/google")) {
-            chain.doFilter(request, response);
-            return;
-        }
-
-        if (requestURI.equals("/api/auth/kakao")) {
-            chain.doFilter(request, response);
-            return;
-        }
+//
+//        if (requestURI.startsWith("/swagger-ui/") || requestURI.startsWith("/v3/api-docs/") || requestURI.startsWith("/api/users")) {
+//            chain.doFilter(request, response);
+//            return;
+//        }
+//
+//        if (requestURI.equals("/api/auth/google")) {
+//            chain.doFilter(request, response);
+//            return;
+//        }
+//
+//        if (requestURI.equals("/api/auth/kakao")) {
+//            chain.doFilter(request, response);
+//            return;
+//        }
 
         try {
             String accessToken = jwtProvider.resolveAccessToken(httpRequest);

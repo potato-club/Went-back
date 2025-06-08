@@ -38,11 +38,11 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
         }
 
         Object principal = authentication.getPrincipal();
-        if (!(principal instanceof CustomUserDetails)) {
+
+        if (!(principal instanceof CustomUserDetails userDetails)) {
             throw new AccessDeniedException("유효하지 않은 사용자 정보입니다.");
         }
 
-        CustomUserDetails userDetails = (CustomUserDetails) principal;
         String email = userDetails.getUsername();
 
         return userRepository.findByEmail(email)

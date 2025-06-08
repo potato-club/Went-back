@@ -81,7 +81,7 @@ public class JwtProvider {
 
     public JwtToken issueToken(UserEntity user) {
         String username = user.getEmail();
-        String authorities = "user"; // 일단 권한 정보 X
+        String authorities = "ROLE_USER"; // 일단 권한 정보 X
 
         String accessToken = createAccessToken(username, authorities);
         String refreshToken = createRefreshToken(username);
@@ -106,7 +106,7 @@ public class JwtProvider {
         UserEntity user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new UnAuthorizedException("존재하지 않는 사용자입니다.", ErrorCode.USER_NOT_FOUND));
 
-        String newAccessToken = createAccessToken(username, "user"); // role 없음
+        String newAccessToken = createAccessToken(username, "ROLE_USER");
         String newRefreshToken = createRefreshToken(username);
 
         return JwtToken.builder()
@@ -148,10 +148,6 @@ public class JwtProvider {
     }
 
     public Authentication getAuthentication(String token) {
-//        if (token == null || token.isBlank() || !token.startsWith("Bearer ")) {
-//            throw new UnAuthorizedException("Access Token이 존재하지 않거나, 잘못된 형식입니다.", ErrorCode.INVALID_ACCESS_TOKEN);
-//        }
-
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
@@ -159,10 +155,13 @@ public class JwtProvider {
                 .getBody();
 
         String username = claims.getSubject();
-        String authority = (String) claims.get("authorities"); // user
+        String authority = (String) claims.get("authorities");
+
+        if (authority == null) {
+            throw new UnAuthorizedException("권한 정보가 없습니다.", ErrorCode.INVALID_ACCESS_TOKEN);
+        }
 
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
-
         Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(authority));
 //        user.updateEmail(username);// 이메일만 담아둠
 
