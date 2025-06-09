@@ -48,7 +48,7 @@ public class UserServiceImpl implements UserService {
         return savedUser.toUserResponseDTO();
     }
 
-    // 마이페이지
+    // 내 프로필 조회
     public MyProfileResponseDTO getMyProfile(UserEntity currentUser) {
         return userMapper.toMyProfileResponseDTO(currentUser);
     }
