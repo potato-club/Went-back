@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Table(name = "tb_user_category")
 public class UserCategory {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_category_id")
     private Long userCategoryId;
 
     @ManyToOne(fetch = FetchType.LAZY)
