@@ -11,47 +11,45 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.GenericFilterBean;
-
 import java.io.IOException;
 
+@Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends GenericFilterBean {
     private final JwtProvider jwtProvider;
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-            throws IOException, ServletException {
-
-        HttpServletRequest httpRequest = (HttpServletRequest) request;
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+        HttpServletRequest httpRequest = (HttpServletRequest)request;
         String requestURI = httpRequest.getRequestURI();
 
-        // 인증 없이 허용할 경로들
-        if (
-                requestURI.startsWith("/swagger-ui/") ||
-                        requestURI.startsWith("/v3/api-docs/") ||
-                        requestURI.startsWith("/api/users") ||
-                        requestURI.startsWith("/api/posts") ||
-                        requestURI.equals("/api/auth/google") ||
-                        requestURI.equals("/api/auth/kakao")
-        ) {
+        if (requestURI.startsWith("/swagger-ui/") || requestURI.startsWith("/v3/api-docs/") || requestURI.equals("/api/auth/google") || requestURI.equals("/api/auth/kakao")) {
             chain.doFilter(request, response);
             return;
         }
+//
+//        if (requestURI.startsWith("/swagger-ui/") || requestURI.startsWith("/v3/api-docs/") || requestURI.startsWith("/api/users")) {
+//            chain.doFilter(request, response);
+//            return;
+//        }
+//
+//        if (requestURI.equals("/api/auth/google")) {
+//            chain.doFilter(request, response);
+//            return;
+//        }
+//
+//        if (requestURI.equals("/api/auth/kakao")) {
+//            chain.doFilter(request, response);
+//            return;
+//        }
 
         try {
             String accessToken = jwtProvider.resolveAccessToken(httpRequest);
-
-            // 토큰이 없으면 통과
-            if (accessToken == null || accessToken.isBlank()) {
-                chain.doFilter(request, response);
-                return;
-            }
-
             Authentication authentication = jwtProvider.getAuthentication(accessToken);
             SecurityContextHolder.getContext().setAuthentication(authentication);
             chain.doFilter(request, response);
-
         } catch (InvalidTokenException | UnAuthorizedException e) {
             HttpServletResponse httpServletResponse = (HttpServletResponse) response;
             httpServletResponse.setContentType("application/json");
@@ -59,5 +57,6 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
             httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             httpServletResponse.getWriter().write("{\"message\": \"ErrorCode_401, 토큰이 없거나 유효하지 않습니다.\"}");
         }
+
     }
 }

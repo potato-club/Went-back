@@ -1,50 +1,35 @@
 package com.example.demo.entity;
 
+import com.example.demo.entity.enums.CategoryType;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
+@Getter
 @Table(name = "tb_category")
+@NoArgsConstructor
 public class Category implements Serializable {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "category_id")
+    private Long categoryId;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // 기본키
+    @Column(name = "category_name")
+    private String name;
 
-    @Column(nullable = false, unique = true)
-    private String name; // Enum 코드 (예: "MOVIE", "BOOK" 등)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category_type")
+    private CategoryType categoryType;
 
-    @Column(nullable = false)
-    private String koName; // 한글명 (예: "영화", "책" 등)
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserCategory> userCategories = new ArrayList<>();
 
-    public Category() {}
-
-    public Category(String name, String koName) {
+    public Category(String name, CategoryType categoryType) {
         this.name = name;
-        this.koName = koName;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getKoName() {
-        return koName;
-    }
-
-    public void setKoName(String koName) {
-        this.koName = koName;
+        this.categoryType = categoryType;
     }
 }

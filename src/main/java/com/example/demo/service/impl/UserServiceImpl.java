@@ -1,12 +1,17 @@
 package com.example.demo.service.impl;
 
+import com.example.demo.dto.response.MyProfileResponseDTO;
 import com.example.demo.dto.response.UserResponseDTO;
 import com.example.demo.dto.UserUniqueDTO;
 import com.example.demo.dto.UserUpdateDTO;
+import com.example.demo.entity.Category;
+import com.example.demo.entity.UserCategory;
 import com.example.demo.entity.UserEntity;
 import com.example.demo.error.*;
 import com.example.demo.jwt.JwtProvider;
 import com.example.demo.jwt.JwtToken;
+import com.example.demo.mapper.UserMapper;
+import com.example.demo.repository.CategoryRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,26 +27,31 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final JwtProvider jwtProvider;
+    private final CategoryRepository categoryRepository;
+    private final UserMapper userMapper;
 
-//    @Transactional
-//    public UserResponseDTO createUser(UserCreationDTO userDTO, HttpServletResponse response) {
-//        if (userRepository.existsByEmail(userDTO.getEmail()) || userRepository.existsBySocialKey(userDTO.getSocialKey())) {
-//            throw new ConflictException("이미 존재하는 사용자입니다.", ErrorCode.USER_ALREADY_EXISTS);
-//        }
-//
-//        UserEntity userEntity = UserEntity.builder()
-//                .socialKey(userDTO.getSocialKey())
-//                .email(userDTO.getEmail())
-//                .build();
-//
-//        UserEntity result = userRepository.save(userEntity);
-//
-//        JwtToken jwtToken = jwtProvider.issueToken(result);
-//        jwtProvider.setHeaderAccessToken(response, jwtToken.getAccessToken());
-//        jwtProvider.setHeaderRefreshToken(response, jwtToken.getRefreshToken());
-//
-//        return result.toUserResponseDTO();
-//    }
+    // 추가 정보 입력 및 프로필 수정
+    public UserResponseDTO updateProfile(UserEntity currentUser, UserUpdateDTO userUpdateDTO) {
+        currentUser.updateByDto(userUpdateDTO);
+        currentUser.getUserCategories().clear();
+
+        List<Category> categories = categoryRepository.findAllById(userUpdateDTO.getCategoryIds());
+
+        categories.forEach(category -> {
+            UserCategory uc = new UserCategory();
+            uc.assignUser(currentUser);   // 현재 유저와 연결
+            uc.assignCategory(category);  // 카테고리와 연결
+            currentUser.getUserCategories().add(uc);
+        });
+
+        UserEntity savedUser = userRepository.save(currentUser);
+        return savedUser.toUserResponseDTO();
+    }
+
+    // 내 프로필 조회
+    public MyProfileResponseDTO getMyProfile(UserEntity currentUser) {
+        return userMapper.toMyProfileResponseDTO(currentUser);
+    }
 
     public List<UserResponseDTO> getAllUsers() {
         return userRepository.findAll().stream()
@@ -63,12 +73,13 @@ public class UserServiceImpl implements UserService {
         return userEntity != null ? userEntity.toUserResponseDTO() : null;
     }
 
-    public UserResponseDTO updateUser(UserUpdateDTO userDTO, HttpServletRequest request) {
-        UserEntity user = findUserByAccessToken(request);
-        user.updateByDto(userDTO);
-        UserEntity result = userRepository.save(user);
-        return result.toUserResponseDTO();
-    }
+
+
+//    public UserResponseDTO updateUser(UserEntity currentUser, UserUpdateDTO useUpdateDTO) {
+//        currentUser.updateByDto(useUpdateDTO);
+//        UserEntity savedUser = userRepository.save(currentUser);
+//        return savedUser.toUserResponseDTO();
+//    }
 
     public void deleteUser(HttpServletRequest request) {
         UserEntity user = findUserByAccessToken(request);
