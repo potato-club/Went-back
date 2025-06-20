@@ -5,6 +5,7 @@ import com.example.demo.entity.UserEntity;
 import com.example.demo.jwt.JwtProvider;
 import com.example.demo.jwt.JwtToken;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.social.google.dto.GoogleUserInfo;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ public class GoogleOAuthService {
         if (user == null) {
             // 신규 회원
             isNewUser = true;
+
             user = UserEntity.builder()
                     .socialKey(googleUserInfo.getUserId())
                     .email(googleUserInfo.getEmail())

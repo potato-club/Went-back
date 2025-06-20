@@ -1,11 +1,10 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
-@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "photo")
 public class Photo {
@@ -17,14 +16,11 @@ public class Photo {
     private Long userId;
     private String url;
 
-    // Getters and Setters
-    public Long getPhotoId() { return photoId; }
-    public void setPhotoId(Long photoId) { this.photoId = photoId; }
-    public Long getPostId() { return postId; }
-    public void setPostId(Long postId) { this.postId = postId; }
-    public Long getUserId() { return userId; }
-    public void setUserId(Long userId) { this.userId = userId; }
-    public String getUrl() { return url; }
-    public void setUrl(String url) { this.url = url; }
+    @Builder
+    public Photo(Long postId, Long userId, String url) {
+        this.postId = postId;
+        this.userId = userId;
+        this.url = url;
+    }
 }
 

@@ -48,10 +48,11 @@ public class S3Service {
         String fileUrl = amazonS3.getUrl(bucket, s3FileName).toString();
 
         // DB에 Photo 저장
-        Photo photo = new Photo();
-        photo.setPostId(postId);
-        photo.setUserId(userId);
-        photo.setUrl(fileUrl);
+        Photo photo = Photo.builder()
+                .postId(postId)
+                .userId(userId)
+                .url(fileUrl)
+                .build();
         photoRepository.save(photo);
 
         return fileUrl;

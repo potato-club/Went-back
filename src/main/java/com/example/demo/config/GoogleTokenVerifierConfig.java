@@ -12,7 +12,7 @@ import java.util.Collections;
 @Configuration
 public class GoogleTokenVerifierConfig {
 
-    @Value("${app.google.client.id}")
+    @Value("${oauth.google.client-id}")
     private String googleClientId;
 
     @Bean

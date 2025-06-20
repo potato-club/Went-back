@@ -1,40 +1,35 @@
 package com.example.demo.entity;
 
+import com.example.demo.entity.enums.CategoryType;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
+@Getter
 @Table(name = "tb_category")
+@NoArgsConstructor
 public class Category implements Serializable {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "category_id")
+    private Long categoryId;
 
+    @Column(name = "category_name")
     private String name;
-    private String koName;
 
-    public Long getId() {
-        return id;
-    }
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category_type")
+    private CategoryType categoryType;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserCategory> userCategories = new ArrayList<>();
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
+    public Category(String name, CategoryType categoryType) {
         this.name = name;
-    }
-
-    public String getKoName() {
-        return koName;
-    }
-
-    public void setKoName(String koName) {
-        this.koName = koName;
+        this.categoryType = categoryType;
     }
 }
