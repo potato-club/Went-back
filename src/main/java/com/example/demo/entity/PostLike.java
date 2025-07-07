@@ -1,14 +1,14 @@
 package com.example.demo.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
+@Table(name = "post_like", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"postId", "userId"})
+})
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

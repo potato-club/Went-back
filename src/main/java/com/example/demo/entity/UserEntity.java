@@ -2,22 +2,27 @@ package com.example.demo.entity;
 
 import com.example.demo.dto.response.UserResponseDTO;
 import com.example.demo.dto.UserUpdateDTO;
+import com.example.demo.repository.CategoryRepository;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.beans.BeanUtils;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @Entity
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "tb_user")
 public class UserEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id")
     private Long userId;
 
     @Column(unique = true, nullable = false)
@@ -28,36 +33,37 @@ public class UserEntity {
     private LocalDate birthDate;
     private String region;
 
-    @ElementCollection
-    private List<Long> categoryIds;
+    @OneToMany(mappedBy = "writer", cascade = CascadeType.ALL)
+    private List<Post> posts;
+
+    // 유저가 선호하는 카테고리
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserCategory> userCategories = new ArrayList<>();
 
     @Builder
-    public UserEntity(String socialKey, String nickname, String email, LocalDate birthDate, String region, List<Long> categoryIds) {
+    public UserEntity(String socialKey, String nickname, String email, LocalDate birthDate, String region, List<Long> categoryIds, List<Post> posts) {
         this.socialKey = socialKey;
         this.nickname = nickname;
         this.email = email;
         this.birthDate = birthDate;
         this.region = region;
-        this.categoryIds = categoryIds;
+//        this.categoryIds = categoryIds;
+        this.posts = posts;
     }
 
     public UserEntity(String email) {
         this.email = email;
     }
 
-//    public UserResponseDTO toUserResponseDTO() {
-//        UserResponseDTO userResponseDTO = new UserResponseDTO();
-//        BeanUtils.copyProperties(this, userResponseDTO);
-//        return userResponseDTO;
-//    }
-
     public UserResponseDTO toUserResponseDTO() {
         return UserResponseDTO.builder()
-                .socialKey(this.socialKey)
-                .nickname(this.nickname)
                 .email(this.email)
+                .nickname(this.nickname)
                 .birthDate(this.birthDate)
                 .region(this.region)
+                .categoryIds(this.userCategories.stream()
+                        .map(uc -> uc.getCategory().getCategoryId())
+                        .collect(Collectors.toList()))
                 .build();
     }
 
@@ -67,9 +73,11 @@ public class UserEntity {
                 .email(this.email)
                 .birthDate(this.birthDate)
                 .region(this.region)
+                .categoryIds(this.userCategories.stream()
+                        .map(uc -> uc.getCategory().getCategoryId())
+                        .collect(Collectors.toList()))
                 .build();
     }
-
 
     public UserEntity updateByDto(UserUpdateDTO userUpdateDTO) {
         this.birthDate = LocalDate.parse(userUpdateDTO.getBirthDate());
@@ -78,4 +86,3 @@ public class UserEntity {
         return this;
     }
 }
-

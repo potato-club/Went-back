@@ -1,6 +1,5 @@
 package com.example.demo.service;
 
-import java.net.URLDecoder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
@@ -11,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLDecoder;
 import java.util.*;
 
 @Service
@@ -25,9 +25,10 @@ public class S3Service {
         this.amazonS3 = amazonS3;
     }
 
-    // 여러 장 업로드: S3에만 저장, DB 저장 없음. 파일 URL 목록 반환
+    // 여러 장 업로드
     public List<String> uploadFiles(List<MultipartFile> files) {
         List<String> urlList = new ArrayList<>();
+        if (files == null) return urlList;
         for (MultipartFile file : files) {
             String url = upload(file);
             urlList.add(url);

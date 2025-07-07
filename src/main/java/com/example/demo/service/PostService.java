@@ -1,143 +1,151 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.PostDTO;
 import com.example.demo.dto.PostListDTO;
+import com.example.demo.dto.request.PostCreationDTO;
+import com.example.demo.dto.request.PostUpdateDTO;
+import com.example.demo.dto.response.PostResponseDTO;
 import com.example.demo.entity.Post;
+import com.example.demo.entity.Category;
+import com.example.demo.entity.UserEntity;
+import com.example.demo.repository.CategoryRepository;
+import com.example.demo.repository.PostLikeRepository;
 import com.example.demo.repository.PostRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.*;
+import com.example.demo.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
+@RequiredArgsConstructor
 public class PostService {
 
     private final PostRepository postRepository;
+    private final CategoryRepository categoryRepository;
+    private final UserRepository userRepository;
     private final S3Service s3Service;
+    private final PostLikeRepository postLikeRepository;
 
-    @Autowired
-    public PostService(PostRepository postRepository, S3Service s3Service) {
-        this.postRepository = postRepository;
-        this.s3Service = s3Service;
-    }
-
-    /** 게시글 작성 (이미지 없음, JSON만) */
+    // 게시글 생성 (인증된 사용자 기반)
     @Transactional
-    public PostDTO createPost(PostDTO postDTO, List<MultipartFile> files) {
-        Post post = new Post();
-        post.setUserId(postDTO.getUserId()); // String userId
-        post.setTitle(postDTO.getTitle());
-        post.setContent(postDTO.getContent());
-        post.setCreatedAt(LocalDateTime.now());
-        post.setCategoryId(postDTO.getCategoryId());
-        post.setViewCount(1);
+    public PostResponseDTO createPost(PostCreationDTO dto, Long userId, List<MultipartFile> files) {
+        Category category = categoryRepository.findById(dto.getCategoryId())
+                .orElseThrow(() -> new NoSuchElementException("카테고리가 존재하지 않습니다."));
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
+
+        Post post = Post.builder()
+                .title(dto.getTitle())
+                .content(dto.getContent())
+                .category(category)
+                .writer(user)
+                .stars(dto.getStars())
+                .thumbnailUrl(dto.getThumbnailUrl())
+                .build();
+
         post = postRepository.save(post);
 
-        postDTO.setPostId(post.getPostId());
-        postDTO.setCreatedAt(post.getCreatedAt());
-        postDTO.setPhotoUrls(Collections.emptyList()); // 파일정보는 관리하지 않음
-        postDTO.setViewCount(post.getViewCount());
-        return postDTO;
+        if (files != null && !files.isEmpty()) {
+            s3Service.uploadFiles(files);
+        }
+
+        return PostResponseDTO.builder()
+                .postId(post.getPostId())
+                .userId(post.getWriter().getUserId())
+                .title(post.getTitle())
+                .content(post.getContent())
+                .categoryId(post.getCategory().getCategoryId())
+                .createdAt(post.getCreatedAt())
+                .viewCount(post.getViewCount())
+                .stars(post.getStars())
+                .thumbnailUrl(post.getThumbnailUrl())
+                .build();
     }
 
-    /** 게시글 상세 조회 (조회수 증가, 첨부파일 없음) */
+    // 게시글 수정
     @Transactional
-    public PostDTO getPost(Long postId) {
-        Optional<Post> optionalPost = postRepository.findById(postId);
-        if (optionalPost.isEmpty()) {
-            return null;
-        }
-        Post post = optionalPost.get();
-        post.setViewCount(post.getViewCount() + 1);
+    public PostResponseDTO updatePost(Long postId, PostUpdateDTO dto, List<MultipartFile> files) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new NoSuchElementException("게시글이 존재하지 않습니다."));
+        Category category = categoryRepository.findById(dto.getCategoryId())
+                .orElseThrow(() -> new NoSuchElementException("카테고리가 존재하지 않습니다."));
+
+        if (dto.getTitle() != null) post.setTitle(dto.getTitle());
+        if (dto.getContent() != null) post.setContent(dto.getContent());
+        if (dto.getCategoryId() != null) post.setCategory(category);
+        if (dto.getStars() != null) post.setStars(dto.getStars());
+        if (dto.getThumbnailUrl() != null) post.setThumbnailUrl(dto.getThumbnailUrl());
+
         postRepository.save(post);
 
-        PostDTO dto = new PostDTO();
-        dto.setPostId(post.getPostId());
-        dto.setUserId(post.getUserId());
-        dto.setTitle(post.getTitle());
-        dto.setContent(post.getContent());
-        dto.setCreatedAt(post.getCreatedAt());
-        dto.setCategoryId(post.getCategoryId());
-        dto.setViewCount(post.getViewCount());
-        dto.setPhotoUrls(Collections.emptyList()); // 첨부파일 관리 X
-
-        return dto;
-    }
-
-    /** 게시글 수정 (이미지 없음, 텍스트만) */
-    @Transactional
-    public PostDTO updatePost(PostDTO postDTO, List<MultipartFile> files) {
-        Optional<Post> optionalPost = postRepository.findById(postDTO.getPostId());
-        if (optionalPost.isEmpty()) {
-            return null;
+        if (files != null && !files.isEmpty()) {
+            s3Service.uploadFiles(files);
         }
-        Post post = optionalPost.get();
-        post.setTitle(postDTO.getTitle());
-        post.setContent(postDTO.getContent());
-        post.setCategoryId(postDTO.getCategoryId());
-        postRepository.save(post);
 
-        PostDTO resultDTO = new PostDTO();
-        resultDTO.setPostId(post.getPostId());
-        resultDTO.setUserId(post.getUserId());
-        resultDTO.setTitle(post.getTitle());
-        resultDTO.setContent(post.getContent());
-        resultDTO.setCreatedAt(post.getCreatedAt());
-        resultDTO.setCategoryId(post.getCategoryId());
-        resultDTO.setPhotoUrls(Collections.emptyList());
-        resultDTO.setViewCount(post.getViewCount());
-
-        return resultDTO;
+        return PostResponseDTO.builder()
+                .postId(post.getPostId())
+                .userId(post.getWriter().getUserId())
+                .title(post.getTitle())
+                .content(post.getContent())
+                .categoryId(post.getCategory().getCategoryId())
+                .createdAt(post.getCreatedAt())
+                .viewCount(post.getViewCount())
+                .stars(post.getStars())
+                .thumbnailUrl(post.getThumbnailUrl())
+                .build();
     }
 
     @Transactional(readOnly = true)
     public Page<PostListDTO> getPostsByCategory(Long categoryId, Pageable pageable) {
-        Page<Post> posts = postRepository.findAllByCategoryId(categoryId, pageable);
+        Page<Post> posts = postRepository.findAllByCategory_CategoryId(categoryId, pageable);
 
         return posts.map(post -> {
             PostListDTO dto = new PostListDTO();
             dto.setPostId(post.getPostId());
-            dto.setUserId(post.getUserId());
+            dto.setUserId(String.valueOf(post.getWriter().getUserId()));
             dto.setTitle(post.getTitle());
             dto.setContent(post.getContent());
             dto.setCreatedAt(post.getCreatedAt());
-            dto.setCategoryId(post.getCategoryId());
+            dto.setCategoryId(post.getCategory().getCategoryId());
             dto.setViewCount(post.getViewCount());
-            dto.setPhotoUrls(Collections.emptyList());
+            dto.setStars(post.getStars());
+            dto.setThumbnailUrl(post.getThumbnailUrl());
             return dto;
         });
     }
 
-    /** 게시글 삭제 (첨부파일 없음, S3 연동도 필요 없음) */
+    @Transactional
+    public PostResponseDTO getPost(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new NoSuchElementException("게시글이 존재하지 않습니다."));
+        post.setViewCount(post.getViewCount() + 1);
+        postRepository.save(post);
+
+        long likeCount = postLikeRepository.countByPostId(postId);
+
+        return PostResponseDTO.builder()
+                .postId(post.getPostId())
+                .userId(post.getWriter().getUserId())
+                .title(post.getTitle())
+                .content(post.getContent())
+                .categoryId(post.getCategory().getCategoryId())
+                .createdAt(post.getCreatedAt())
+                .viewCount(post.getViewCount())
+                .stars(post.getStars())
+                .thumbnailUrl(post.getThumbnailUrl())
+                .likeCount(likeCount)
+                .build();
+    }
+
     @Transactional
     public void deletePost(Long id) {
-        Optional<Post> optionalPost = postRepository.findById(id);
-        if (optionalPost.isEmpty()) {
-            throw new NoSuchElementException("게시글이 존재하지 않습니다.");
-        }
-        Post post = optionalPost.get();
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("게시글이 존재하지 않습니다."));
         postRepository.delete(post);
-    }
-
-    /** 이미지 업로드: S3에만 저장, DB 저장 없음 */
-    @Transactional
-    public List<String> uploadImages(Long postId, List<MultipartFile> files, String userId) {
-        List<String> photoUrls = new ArrayList<>();
-        for (MultipartFile file : files) {
-            String url = s3Service.upload(file);
-            photoUrls.add(url); // DB 저장 없이 URL만 반환
-        }
-        return photoUrls;
-    }
-
-    /** 이미지 삭제: S3에서만 삭제, DB에는 영향 없음 */
-    @Transactional
-    public void deleteImageByUrl(String fileUrl) {
-        s3Service.deleteFileByUrl(fileUrl);
     }
 }

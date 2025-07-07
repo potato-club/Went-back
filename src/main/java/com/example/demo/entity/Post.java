@@ -1,51 +1,59 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
 @Entity
+@Getter
+@Setter // setter 추가
+@NoArgsConstructor(access = AccessLevel.PUBLIC)
 @Table(name = "post")
 public class Post {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long postId;
 
-    @Column(nullable = false)
-    private String userId; // userId를 String으로 변경 (socialKey 역할)
-
-    @Column(length = 255, nullable = false)
-    private String title;
-
+    private String title; // 추가
     @Lob
     private String content;
 
     private LocalDateTime createdAt;
 
-    private Long categoryId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
 
-    private Integer viewCount = 0;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity writer;
 
-    public Post() {}
+    private Integer stars; // 추가
+    private String thumbnailUrl; // 추가
+    private Integer viewCount; // 추가
 
-    public Long getPostId() { return postId; }
-    public void setPostId(Long postId) { this.postId = postId; }
+    @Builder
+    public Post(String title, String content, Category category, UserEntity writer, Integer stars, String thumbnailUrl) {
+        this.title = title;
+        this.content = content;
+        this.category = category;
+        this.writer = writer;
+        this.stars = stars;
+        this.thumbnailUrl = thumbnailUrl;
+        this.createdAt = LocalDateTime.now();
+        this.viewCount = 1; // 초기값 설정
+    }
 
-    public String getUserId() { return userId; }
-    public void setUserId(String userId) { this.userId = userId; }
+    public void updateContent(String content) {
+        this.content = content;
+    }
 
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
-
-    public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
-
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-
-    public Long getCategoryId() { return categoryId; }
-    public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
-
-    public Integer getViewCount() { return viewCount; }
-    public void setViewCount(Integer viewCount) { this.viewCount = viewCount; }
+    public void updateCategory(Category category) {
+        this.category = category;
+    }
 }

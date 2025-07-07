@@ -5,6 +5,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+
 public interface PostRepository extends JpaRepository<Post, Long> {
-    Page<Post> findAllByCategoryId(Long categoryId, Pageable pageable);
+    Page<Post> findAllByCategory_CategoryId(Long categoryId, Pageable pageable); // 수정
+    List<Post> findByWriter_UserId(Long userId); // 수정
 }
