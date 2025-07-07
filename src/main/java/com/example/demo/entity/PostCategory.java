@@ -19,15 +19,6 @@ public class PostCategory {
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
-<<<<<<< HEAD
-    // Getters and Setters
-    public Long getPostCategoryId() { return postCategoryId; }
-    public void setPostCategoryId(Long postCategoryId) { this.postCategoryId = postCategoryId; }
-    public Long getPostId() { return postId; }
-    public void setPostId(Long postId) { this.postId = postId; }
-    public Long getCategoryId() { return categoryId; }
-    public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
-=======
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
@@ -41,5 +32,4 @@ public class PostCategory {
     public void changeCategory(Category category) {
         this.category = category;
     }
->>>>>>> master
 }

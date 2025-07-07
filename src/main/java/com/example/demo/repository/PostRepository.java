@@ -8,6 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
-    Page<Post> findByCategoryCategoryId(Long categoryId, Pageable pageable);
-    List<Post> findByWriterUserId(Long userId);
+    Page<Post> findAllByCategory_CategoryId(Long categoryId, Pageable pageable); // 수정
+    List<Post> findByWriter_UserId(Long userId); // 수정
 }

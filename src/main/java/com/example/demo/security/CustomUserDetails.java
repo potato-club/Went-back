@@ -13,6 +13,10 @@ import java.util.List;
 public class CustomUserDetails implements UserDetails {
     private final UserEntity user;
 
+    public Long getUserId() {
+        return user.getUserId();
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_USER"));

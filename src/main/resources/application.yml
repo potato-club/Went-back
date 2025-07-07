@@ -54,3 +54,12 @@ oauth:
     redirect-url: ${KAKAO_REDIRECT_URL}
     client-secret: ${KAKAO_CLIENT_SECRET}
     base-url: ${KAKAO_BASE_URL}
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+
+spring.output.ansi.enabled: always
