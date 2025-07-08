@@ -74,7 +74,7 @@ public class CommentController {
             description = """
             로그인한 사용자가 **자신이 작성한 댓글**을 삭제합니다.
 
-            - JWT 인증 필요  
+            - JWT 인증 필요
             - 본인이 작성한 댓글이 아니면 삭제 불가 (403 에러 발생)
             """
     )
