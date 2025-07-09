@@ -41,12 +41,13 @@ public class PostController {
     }
 
     @Operation(summary = "게시글 수정 (JSON)")
-    @PutMapping(value = "/{postId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping("/{postId}")
     public ResponseEntity<PostResponseDTO> updatePost(
             @PathVariable Long postId,
-            @RequestBody PostUpdateDTO req
+            @RequestBody PostUpdateDTO req,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        PostResponseDTO updated = postService.updatePost(postId, req, null);
+        PostResponseDTO updated = postService.updatePost(postId, req, userDetails.getUserId(), null);
         return ResponseEntity.ok(updated);
     }
 
@@ -83,8 +84,11 @@ public class PostController {
 
     @Operation(summary = "게시글 삭제")
     @DeleteMapping("/{postId}")
-    public ResponseEntity<Void> deletePost(@PathVariable Long postId) {
-        postService.deletePost(postId);
+    public ResponseEntity<Void> deletePost(
+            @PathVariable Long postId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        postService.deletePost(postId, userDetails.getUserId());
         return ResponseEntity.noContent().build();
     }
 

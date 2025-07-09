@@ -60,6 +60,7 @@ public class CommentService {
         }
 
         comment.setContent(newContent);
+        comment.setUpdatedAt(java.time.LocalDateTime.now()); // <-- 수동 설정 추가
 
         return toDTO(comment);
     }
@@ -79,6 +80,7 @@ public class CommentService {
                 .userId(c.getUserId())
                 .content(c.getContent())
                 .createdAt(c.getCreatedAt())
+                .updatedAt(c.getUpdatedAt())
                 .build();
     }
 

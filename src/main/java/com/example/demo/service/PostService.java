@@ -69,9 +69,14 @@ public class PostService {
 
     // 게시글 수정
     @Transactional
-    public PostResponseDTO updatePost(Long postId, PostUpdateDTO dto, List<MultipartFile> files) {
+    public PostResponseDTO updatePost(Long postId, PostUpdateDTO dto, Long userId, List<MultipartFile> files) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new NoSuchElementException("게시글이 존재하지 않습니다."));
+
+        if (!post.getWriter().getUserId().equals(userId)) {
+            throw new SecurityException("본인의 게시글만 수정할 수 있습니다.");
+        }
+
         Category category = categoryRepository.findById(dto.getCategoryId())
                 .orElseThrow(() -> new NoSuchElementException("카테고리가 존재하지 않습니다."));
 
@@ -143,9 +148,14 @@ public class PostService {
     }
 
     @Transactional
-    public void deletePost(Long id) {
-        Post post = postRepository.findById(id)
+    public void deletePost(Long postId, Long userId) {
+        Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new NoSuchElementException("게시글이 존재하지 않습니다."));
+
+        if (!post.getWriter().getUserId().equals(userId)) {
+            throw new SecurityException("본인의 게시글만 삭제할 수 있습니다.");
+        }
+
         postRepository.delete(post);
     }
 }
