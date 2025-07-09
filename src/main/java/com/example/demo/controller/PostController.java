@@ -41,7 +41,7 @@ public class PostController {
     }
 
     @Operation(summary = "게시글 수정 (JSON)")
-    @PutMapping("/{postId}")
+    @PutMapping(value = "/{postId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PostResponseDTO> updatePost(
             @PathVariable Long postId,
             @RequestBody PostUpdateDTO req,
