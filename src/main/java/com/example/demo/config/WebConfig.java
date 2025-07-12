@@ -20,7 +20,9 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedOrigins(
                         "http://localhost:3000",
                         "http://oth.kr:8174",
-                        "https://went_back.gamza.club"
+                        "https://went_back.gamza.club",
+                        "http://43.203.187.103:8080",
+                        "http://3.35.97.18:8080"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")

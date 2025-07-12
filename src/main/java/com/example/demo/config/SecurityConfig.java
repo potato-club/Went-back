@@ -63,7 +63,9 @@ public class SecurityConfig {
         config.setAllowedOrigins(List.of(
                 "http://localhost:3000",
                 "http://oth.kr:8174",
-                "https://went_back.gamza.club"
+                "https://went_back.gamza.club",
+                "http://43.203.187.103:8080",
+                "http://3.35.97.18:8080"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
