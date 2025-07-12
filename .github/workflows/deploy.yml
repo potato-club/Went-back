@@ -25,7 +25,7 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew clean build
 
-      - name: Save SSH key
+      - name: Save SSH key to file
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.EC2_KEY }}" > ~/.ssh/spring-key.pem
@@ -33,11 +33,15 @@ jobs:
 
       - name: Copy JAR to EC2
         run: |
-          scp -o StrictHostKeyChecking=no -i ~/.ssh/spring-key.pem build/libs/Went-back-0.0.4-SNAPSHOT.jar ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ec2-user/
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/spring-key.pem \
+            build/libs/Went-back-0.0.4-SNAPSHOT.jar \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ec2-user/
 
-      - name: Restart EC2 service
+      - name: Restart Spring Boot service
         run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/spring-key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/spring-key.pem \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
             sudo systemctl daemon-reload
             sudo systemctl restart went-back
+            sudo systemctl status went-back --no-pager
           EOF
