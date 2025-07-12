@@ -1,0 +1,39 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - seungjun
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+
+      - name: Build with Gradle
+        run: ./gradlew clean build
+
+      - name: Save SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_KEY }}" > ~/.ssh/spring-key.pem
+          chmod 600 ~/.ssh/spring-key.pem
+
+      - name: Copy JAR to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/spring-key.pem build/libs/Went-back-0.0.4-SNAPSHOT.jar ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ec2-user/
+
+      - name: Restart EC2 service
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/spring-key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            sudo systemctl daemon-reload
+            sudo systemctl restart went-back
+          EOF
