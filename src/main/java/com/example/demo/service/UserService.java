@@ -14,12 +14,11 @@ import java.util.List;
 @Service
 public interface UserService {
     UserResponseDTO updateProfile(UserEntity currentUser, UserUpdateDTO userUpdateDTO);
-    MyProfileResponseDTO getMyProfile(UserEntity currentUser);
+    MyProfileResponseDTO getMyProfile(Long userId);
 //    UserResponseDTO createProfile(UserEntity currentUser, UserUpdateDTO userUpdateDTO);
     List<UserResponseDTO> getAllUsers();
-    UserResponseDTO getUser(Long id);
-    UserResponseDTO findUser(UserUniqueDTO userUniqueDTO);
+    UserResponseDTO getUserById(Long id);
+//    UserResponseDTO getUserBySocialKeyAndEmail(UserUniqueDTO userUniqueDTO);
 //    UserResponseDTO updateUser(UserEntity currentUser, UserUpdateDTO userUpdateDTO);
     void deleteUser(HttpServletRequest request);
-    void reissueToken(HttpServletResponse response, String refreshToken);
 }
