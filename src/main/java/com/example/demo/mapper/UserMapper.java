@@ -2,6 +2,7 @@ package com.example.demo.mapper;
 
 import com.example.demo.dto.response.CategoryResponseDTO;
 import com.example.demo.dto.response.MyProfileResponseDTO;
+import com.example.demo.dto.response.UserResponseDTO;
 import com.example.demo.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -22,6 +23,18 @@ public class UserMapper {
                                 .map(userCategory -> categoryMapper.toCategoryResponseDTO(userCategory.getCategory()))
                                 .toList()
                 )
+                .build();
+    }
+
+    public UserResponseDTO toUserResponseDTO(UserEntity user) {
+        return UserResponseDTO.builder()
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .birthDate(user.getBirthDate())
+                .region(user.getRegion())
+                .categoryIds(user.getUserCategories().stream()
+                        .map(uc -> uc.getCategory().getCategoryId())
+                        .toList())
                 .build();
     }
 }
