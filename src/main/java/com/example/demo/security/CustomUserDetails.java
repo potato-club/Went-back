@@ -1,6 +1,7 @@
 package com.example.demo.security;
 
 import com.example.demo.entity.UserEntity;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -9,12 +10,16 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
-@RequiredArgsConstructor
+@Getter
 public class CustomUserDetails implements UserDetails {
-    private final UserEntity user;
+    private final Long userId;
+    private final String email;
+    private final String socialKey;
 
-    public Long getUserId() {
-        return user.getUserId();
+    public CustomUserDetails(Long userId, String email, String socialKey) {
+        this.userId = userId;
+        this.email = email;
+        this.socialKey = socialKey;
     }
 
     @Override
@@ -29,7 +34,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public String getUsername() {
-        return user.getEmail();
+        return email;
     }
 
     @Override
