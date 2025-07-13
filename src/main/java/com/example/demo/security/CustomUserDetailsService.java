@@ -20,6 +20,6 @@ public class CustomUserDetailsService implements UserDetailsService {
         UserEntity user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다. username: " + username));
 
-        return new CustomUserDetails(user);
+        return new CustomUserDetails(user.getUserId(), user.getEmail(), user.getSocialKey());
     }
 }
