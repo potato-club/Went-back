@@ -62,21 +62,6 @@ public class UserServiceImpl implements UserService {
         return userMapper.toUserResponseDTO(user);
     }
 
-//    public UserResponseDTO getUserBySocialKeyAndEmail(UserUniqueDTO userUniqueDTO) {
-//        UserEntity user = userRepository.findBySocialKeyAndEmail(userUniqueDTO.getSocialKey(), userUniqueDTO.getEmail())
-//                .stream()
-//                .findFirst()
-//                .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다.", ErrorCode.USER_NOT_FOUND));
-//        return userMapper.toUserResponseDTO(user);
-//    }
-
-
-//    public UserResponseDTO updateUser(UserEntity currentUser, UserUpdateDTO useUpdateDTO) {
-//        currentUser.updateByDto(useUpdateDTO);
-//        UserEntity savedUser = userRepository.save(currentUser);
-//        return savedUser.toUserResponseDTO();
-//    }
-
     public void deleteUser(HttpServletRequest request) {
         UserEntity user = findUserByAccessToken(request);
         userRepository.delete(user);
