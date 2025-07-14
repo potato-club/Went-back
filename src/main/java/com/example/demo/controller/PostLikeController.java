@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Tag(name = "Post Like API", description = "게시글 좋아요 등록, 취소, 상태 및 개수 조회")
 @RestController
 @RequiredArgsConstructor
@@ -84,4 +86,20 @@ public class PostLikeController {
         long count = postLikeService.countLikes(postId);
         return ResponseEntity.ok(count);
     }
+
+    @Operation(
+            summary = "게시글 좋아요 유저 목록 조회",
+            description = """
+        해당 게시글에 좋아요를 누른 사용자들의 ID 리스트를 반환합니다.
+        
+        - 인증 없이도 호출 가능
+        - 응답 예시: [1, 2, 5, 8]
+        """
+    )
+    @GetMapping("/users")
+    public ResponseEntity<List<Long>> getLikedUserIds(@PathVariable Long postId) {
+        List<Long> userIds = postLikeService.getLikedUserIds(postId);
+        return ResponseEntity.ok(userIds);
+    }
+
 }

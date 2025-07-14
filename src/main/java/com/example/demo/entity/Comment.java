@@ -32,8 +32,9 @@ public class Comment {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column
-    private Long parentId; // null이면 일반 댓글, 값이 있으면 대댓글
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private Comment parent; // 대댓글 관계로 변경
 
     @Column
     private LocalDateTime updatedAt;
