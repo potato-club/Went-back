@@ -10,6 +10,7 @@ public class CategoryMapper {
         return CategoryResponseDTO.builder()
                 .id(category.getCategoryId())
                 .name(category.getName())
+                .categoryType(category.getCategoryType())
                 .build();
     }
 }
