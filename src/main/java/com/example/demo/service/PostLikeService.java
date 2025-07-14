@@ -34,7 +34,7 @@ public class PostLikeService {
             throw new IllegalStateException("이미 좋아요를 눌렀습니다.");
         }
 
-        postLikeRepository.save(new PostLike(null, post, user));
+        postLikeRepository.save(new PostLike(post, user));
     }
 
     // 좋아요 취소
