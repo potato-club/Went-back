@@ -25,7 +25,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
         HttpServletRequest httpRequest = (HttpServletRequest)request;
         String requestURI = httpRequest.getRequestURI();
 
-        if (requestURI.startsWith("/swagger-ui/") || requestURI.startsWith("/v3/api-docs/") || requestURI.equals("/api/auth/google") || requestURI.equals("/api/auth/kakao")) {
+        if (requestURI.startsWith("/swagger-ui/") || requestURI.startsWith("/v3/api-docs/") || requestURI.equals("/api/oauth/google") || requestURI.equals("/api/oauth/kakao")) {
             chain.doFilter(request, response);
             return;
         }
