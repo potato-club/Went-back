@@ -23,7 +23,7 @@ public class Comment {
     private Post post;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "userId", nullable = false)
     private UserEntity user;
 
     @Column(nullable = false, columnDefinition = "TEXT")
