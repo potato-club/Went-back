@@ -1,11 +1,10 @@
 package com.example.demo.mapper;
 
-import com.example.demo.dto.request.PostCreationDTO;
 import com.example.demo.dto.request.PostUpdateDTO;
+import com.example.demo.dto.response.MyPostResponseDTO;
 import com.example.demo.dto.response.PostResponseDTO;
 import com.example.demo.entity.Category;
 import com.example.demo.entity.Post;
-import com.example.demo.entity.UserEntity;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -21,16 +20,6 @@ public class PostMapper {
                 .build();
     }
 
-    public Post toPostEntity(PostCreationDTO dto, Category category, UserEntity writer) {
-        if (dto == null) return null;
-
-        return Post.builder()
-                .content(dto.getContent())
-                .category(category)
-                .writer(writer)
-                .build();
-    }
-
     public void updatePostEntity(PostUpdateDTO dto, Post post, Category category) {
         if (dto.getContent() != null) {
             post.updateContent(dto.getContent());
@@ -39,5 +28,15 @@ public class PostMapper {
         if (dto.getCategoryId() != null) {
             post.updateCategory(category);
         }
+    }
+
+    public MyPostResponseDTO toMyPostResponseDto(Post post) {
+        return MyPostResponseDTO.builder()
+                .postId(post.getPostId())
+                .title(post.getTitle())
+                .thumbnailUrl(post.getThumbnailUrl())
+                .createdDate(post.getCreatedAt())
+                .stars(post.getStars())
+                .build();
     }
 }

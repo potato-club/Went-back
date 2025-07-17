@@ -1,16 +1,21 @@
 package com.example.demo.service.impl;
 
+import com.example.demo.dto.response.MyPostResponseDTO;
 import com.example.demo.dto.response.MyProfileResponseDTO;
 import com.example.demo.dto.response.UserResponseDTO;
 import com.example.demo.dto.UserUpdateDTO;
 import com.example.demo.entity.Category;
+import com.example.demo.entity.Post;
 import com.example.demo.entity.UserCategory;
 import com.example.demo.entity.UserEntity;
 import com.example.demo.error.*;
 import com.example.demo.jwt.JwtProvider;
+import com.example.demo.mapper.PostMapper;
 import com.example.demo.mapper.UserMapper;
 import com.example.demo.repository.CategoryRepository;
+import com.example.demo.repository.PostRepository;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.service.PostService;
 import com.example.demo.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +31,9 @@ public class UserServiceImpl implements UserService {
     private final JwtProvider jwtProvider;
     private final CategoryRepository categoryRepository;
     private final UserMapper userMapper;
+    private final PostRepository postRepository;
+    private final PostMapper postMapper;
+    private final PostService postService;
 
     public UserResponseDTO updateProfile(UserEntity currentUser, UserUpdateDTO userUpdateDTO) {
         currentUser.updateByDto(userUpdateDTO);
@@ -47,7 +55,18 @@ public class UserServiceImpl implements UserService {
     public MyProfileResponseDTO getMyProfile(Long userId) {
        UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다.", ErrorCode.USER_NOT_FOUND));
-        return userMapper.toMyProfileResponseDTO(user);
+
+       MyProfileResponseDTO myProfile = userMapper.toMyProfileResponseDTO(user);
+
+       List<MyPostResponseDTO> myPosts = postService.getMyPosts(userId);
+
+       return MyProfileResponseDTO.builder()
+               .nickname(myProfile.getNickname())ㅊ
+               .region(myProfile.getRegion())
+               .birthDate(myProfile.getBirthDate())
+               .categories(myProfile.getCategories())
+               .myPosts(myPosts)
+               .build();
     }
 
     public List<UserResponseDTO> getAllUsers() {

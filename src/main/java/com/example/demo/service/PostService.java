@@ -3,10 +3,12 @@ package com.example.demo.service;
 import com.example.demo.dto.PostListDTO;
 import com.example.demo.dto.request.PostCreationDTO;
 import com.example.demo.dto.request.PostUpdateDTO;
+import com.example.demo.dto.response.MyPostResponseDTO;
 import com.example.demo.dto.response.PostResponseDTO;
 import com.example.demo.entity.Post;
 import com.example.demo.entity.Category;
 import com.example.demo.entity.UserEntity;
+import com.example.demo.mapper.PostMapper;
 import com.example.demo.repository.CategoryRepository;
 import com.example.demo.repository.PostLikeRepository;
 import com.example.demo.repository.PostRepository;
@@ -30,6 +32,7 @@ public class PostService {
     private final UserRepository userRepository;
     private final S3Service s3Service;
     private final PostLikeRepository postLikeRepository;
+    private final PostMapper postMapper;
 
     // 게시글 생성 (인증된 사용자 기반)
     @Transactional
@@ -145,6 +148,14 @@ public class PostService {
                 .thumbnailUrl(post.getThumbnailUrl())
                 .likeCount(likeCount)
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public List<MyPostResponseDTO> getMyPosts(Long userId) {
+        List<Post> posts = postRepository.findByWriter_UserId(userId);
+        return posts.stream()
+                .map(postMapper::toMyPostResponseDto)
+                .toList();
     }
 
     @Transactional
