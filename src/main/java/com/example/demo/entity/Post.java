@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -20,6 +22,7 @@ public class Post {
     private Long postId;
 
     private String title; // 추가
+
     @Lob
     private String content;
 
@@ -36,6 +39,14 @@ public class Post {
     private Integer stars; // 추가
     private String thumbnailUrl; // 추가
     private Integer viewCount; // 추가
+
+    // 좋아요 연관관계
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PostLike> likes = new ArrayList<>();
+
+    // 댓글 연관관계 추가
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> comments = new ArrayList<>();
 
     @Builder
     public Post(String title, String content, Category category, UserEntity writer, Integer stars, String thumbnailUrl) {

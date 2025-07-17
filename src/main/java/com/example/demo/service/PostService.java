@@ -134,7 +134,7 @@ public class PostService {
         post.setViewCount(post.getViewCount() + 1);
         postRepository.save(post);
 
-        long likeCount = postLikeRepository.countByPostId(postId);
+        long likeCount = postLikeRepository.countByPost(post);
 
         return PostResponseDTO.builder()
                 .postId(post.getPostId())
