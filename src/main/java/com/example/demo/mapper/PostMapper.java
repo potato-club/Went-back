@@ -1,7 +1,7 @@
 package com.example.demo.mapper;
 
 import com.example.demo.dto.request.PostUpdateDTO;
-import com.example.demo.dto.response.MyPostResponseDTO;
+import com.example.demo.dto.response.PostPreviewResponseDTO;
 import com.example.demo.dto.response.PostResponseDTO;
 import com.example.demo.entity.Category;
 import com.example.demo.entity.Post;
@@ -14,7 +14,7 @@ public class PostMapper {
 
         return PostResponseDTO.builder()
                 .postId(post.getPostId())
-                .userId(post.getWriter().getUserId())
+                .userId(post.getUser().getUserId())
                 .content(post.getContent())
                 .categoryId(post.getCategory().getCategoryId())
                 .build();
@@ -30,8 +30,8 @@ public class PostMapper {
         }
     }
 
-    public MyPostResponseDTO toMyPostResponseDto(Post post) {
-        return MyPostResponseDTO.builder()
+    public PostPreviewResponseDTO toPostPreviewResponseDTO(Post post) {
+        return PostPreviewResponseDTO.builder()
                 .postId(post.getPostId())
                 .title(post.getTitle())
                 .thumbnailUrl(post.getThumbnailUrl())
