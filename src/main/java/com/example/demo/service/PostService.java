@@ -3,7 +3,7 @@ package com.example.demo.service;
 import com.example.demo.dto.PostListDTO;
 import com.example.demo.dto.request.PostCreationDTO;
 import com.example.demo.dto.request.PostUpdateDTO;
-import com.example.demo.dto.response.MyPostResponseDTO;
+import com.example.demo.dto.response.PostPreviewResponseDTO;
 import com.example.demo.dto.response.PostResponseDTO;
 import com.example.demo.entity.Post;
 import com.example.demo.entity.Category;
@@ -46,7 +46,7 @@ public class PostService {
                 .title(dto.getTitle())
                 .content(dto.getContent())
                 .category(category)
-                .writer(user)
+                .user(user)
                 .stars(dto.getStars())
                 .thumbnailUrl(dto.getThumbnailUrl())
                 .build();
@@ -59,7 +59,7 @@ public class PostService {
 
         return PostResponseDTO.builder()
                 .postId(post.getPostId())
-                .userId(post.getWriter().getUserId())
+                .userId(post.getUser().getUserId())
                 .title(post.getTitle())
                 .content(post.getContent())
                 .categoryId(post.getCategory().getCategoryId())
@@ -76,7 +76,7 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new NoSuchElementException("게시글이 존재하지 않습니다."));
 
-        if (!post.getWriter().getUserId().equals(userId)) {
+        if (!post.getUser().getUserId().equals(userId)) {
             throw new SecurityException("본인의 게시글만 수정할 수 있습니다.");
         }
 
@@ -97,7 +97,7 @@ public class PostService {
 
         return PostResponseDTO.builder()
                 .postId(post.getPostId())
-                .userId(post.getWriter().getUserId())
+                .userId(post.getUser().getUserId())
                 .title(post.getTitle())
                 .content(post.getContent())
                 .categoryId(post.getCategory().getCategoryId())
@@ -115,7 +115,7 @@ public class PostService {
         return posts.map(post -> {
             PostListDTO dto = new PostListDTO();
             dto.setPostId(post.getPostId());
-            dto.setUserId(String.valueOf(post.getWriter().getUserId()));
+            dto.setUserId(String.valueOf(post.getUser().getUserId()));
             dto.setTitle(post.getTitle());
             dto.setContent(post.getContent());
             dto.setCreatedAt(post.getCreatedAt());
@@ -138,7 +138,7 @@ public class PostService {
 
         return PostResponseDTO.builder()
                 .postId(post.getPostId())
-                .userId(post.getWriter().getUserId())
+                .userId(post.getUser().getUserId())
                 .title(post.getTitle())
                 .content(post.getContent())
                 .categoryId(post.getCategory().getCategoryId())
@@ -151,22 +151,22 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public List<MyPostResponseDTO> getMyPosts(Long userId) {
-        List<Post> posts = postRepository.findByWriter_UserId(userId);
+    public List<PostPreviewResponseDTO> getMyPosts(Long userId) {
+        List<Post> posts = postRepository.findByUser_UserId(userId);
         return posts.stream()
-                .map(postMapper::toMyPostResponseDto)
+                .map(postMapper::toPostPreviewResponseDTO)
                 .toList();
     }
 
     @Transactional(readOnly = true)
-    public List<MyPostResponseDTO> getMyLikedPosts(Long userId) {
+    public List<PostPreviewResponseDTO> getMyLikedPosts(Long userId) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
 
         List<Post> likedPosts = postLikeRepository.findLikedPostByUser(user);
 
         return likedPosts.stream()
-                .map(postMapper::toMyPostResponseDto)
+                .map(postMapper::toPostPreviewResponseDTO)
                 .toList();
     }
 
@@ -175,7 +175,7 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new NoSuchElementException("게시글이 존재하지 않습니다."));
 
-        if (!post.getWriter().getUserId().equals(userId)) {
+        if (!post.getUser().getUserId().equals(userId)) {
             throw new SecurityException("본인의 게시글만 삭제할 수 있습니다.");
         }
 

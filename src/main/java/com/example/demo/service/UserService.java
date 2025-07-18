@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service
 public interface UserService {
     UserResponseDTO updateProfile(UserEntity currentUser, UserUpdateDTO userUpdateDTO);
     MyProfileResponseDTO getMyProfile(Long userId);
