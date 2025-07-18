@@ -3,7 +3,9 @@ package com.example.demo.repository;
 import com.example.demo.entity.Post;
 import com.example.demo.entity.PostLike;
 import com.example.demo.entity.UserEntity;
+import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,4 +29,7 @@ public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
 
     // 좋아요 단건 객체 조회
     Optional<PostLike> findByPostAndUser(Post post, UserEntity user);
+
+    @Query("SELECT pl.post FROM PostLike pl WHERE pl.user = :user")
+    List<Post> findLikedPostByUser(@Param("user") UserEntity user);
 }

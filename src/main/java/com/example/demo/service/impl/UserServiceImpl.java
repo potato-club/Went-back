@@ -5,7 +5,6 @@ import com.example.demo.dto.response.MyProfileResponseDTO;
 import com.example.demo.dto.response.UserResponseDTO;
 import com.example.demo.dto.UserUpdateDTO;
 import com.example.demo.entity.Category;
-import com.example.demo.entity.Post;
 import com.example.demo.entity.UserCategory;
 import com.example.demo.entity.UserEntity;
 import com.example.demo.error.*;
@@ -31,8 +30,6 @@ public class UserServiceImpl implements UserService {
     private final JwtProvider jwtProvider;
     private final CategoryRepository categoryRepository;
     private final UserMapper userMapper;
-    private final PostRepository postRepository;
-    private final PostMapper postMapper;
     private final PostService postService;
 
     public UserResponseDTO updateProfile(UserEntity currentUser, UserUpdateDTO userUpdateDTO) {
@@ -59,13 +56,15 @@ public class UserServiceImpl implements UserService {
        MyProfileResponseDTO myProfile = userMapper.toMyProfileResponseDTO(user);
 
        List<MyPostResponseDTO> myPosts = postService.getMyPosts(userId);
+       List<MyPostResponseDTO> likedPosts = postService.getMyLikedPosts(userId);
 
        return MyProfileResponseDTO.builder()
-               .nickname(myProfile.getNickname())ㅊ
+               .nickname(myProfile.getNickname())
                .region(myProfile.getRegion())
                .birthDate(myProfile.getBirthDate())
                .categories(myProfile.getCategories())
                .myPosts(myPosts)
+               .likedPosts(likedPosts)
                .build();
     }
 

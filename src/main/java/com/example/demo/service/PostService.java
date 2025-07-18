@@ -158,6 +158,18 @@ public class PostService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<MyPostResponseDTO> getMyLikedPosts(Long userId) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
+
+        List<Post> likedPosts = postLikeRepository.findLikedPostByUser(user);
+
+        return likedPosts.stream()
+                .map(postMapper::toMyPostResponseDto)
+                .toList();
+    }
+
     @Transactional
     public void deletePost(Long postId, Long userId) {
         Post post = postRepository.findById(postId)

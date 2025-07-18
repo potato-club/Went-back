@@ -37,6 +37,7 @@ public class PostMapper {
                 .thumbnailUrl(post.getThumbnailUrl())
                 .createdDate(post.getCreatedAt())
                 .stars(post.getStars())
+                .likeCount(post.getLikes() != null ? post.getLikes().size() : 0)
                 .build();
     }
 }
