@@ -15,6 +15,6 @@ public class MyProfileResponseDTO {
     private String region;
     private LocalDate birthDate;
     private List<CategoryResponseDTO> categories;
-    private List<MyPostResponseDTO> myPosts;
-    private List<MyPostResponseDTO> likedPosts;
+    private List<PostPreviewResponseDTO> myPosts;
+    private List<PostPreviewResponseDTO> likedPosts;
 }

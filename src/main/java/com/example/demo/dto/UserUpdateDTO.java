@@ -26,4 +26,6 @@ public class UserUpdateDTO {
 
     // 유저가 선호하는 카테고리
     private List<Long> categoryIds = new ArrayList<>();
+
+    private String profileImageUrl;
 }

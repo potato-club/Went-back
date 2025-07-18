@@ -20,4 +20,5 @@ public class UserResponseDTO {
     private LocalDate birthDate;
     private String region;
     private List<Long> categoryIds;
+    private String profileImageUrl;
 }
