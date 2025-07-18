@@ -32,6 +32,8 @@ public class UserEntity {
     private String email;
     private LocalDate birthDate;
     private String region;
+
+    @Column(name = "profile_image_url")
     private String profileImageUrl;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
@@ -71,6 +73,7 @@ public class UserEntity {
                 .categoryIds(this.userCategories.stream()
                         .map(uc -> uc.getCategory().getCategoryId())
                         .collect(Collectors.toList()))
+                .profileImageUrl(this.profileImageUrl)
                 .build();
     }
 
@@ -90,6 +93,7 @@ public class UserEntity {
         this.birthDate = LocalDate.parse(userUpdateDTO.getBirthDate());
         this.nickname = userUpdateDTO.getNickName();
         this.region = userUpdateDTO.getRegion();
+        this.profileImageUrl = userUpdateDTO.getProfileImageUrl();
         return this;
     }
 }

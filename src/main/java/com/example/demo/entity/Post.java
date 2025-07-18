@@ -34,7 +34,7 @@ public class Post {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private UserEntity writer;
+    private UserEntity user;
 
     private Integer stars; // 추가
     private String thumbnailUrl; // 추가
@@ -49,11 +49,11 @@ public class Post {
     private List<Comment> comments = new ArrayList<>();
 
     @Builder
-    public Post(String title, String content, Category category, UserEntity writer, Integer stars, String thumbnailUrl) {
+    public Post(String title, String content, Category category, UserEntity user, Integer stars, String thumbnailUrl) {
         this.title = title;
         this.content = content;
         this.category = category;
-        this.writer = writer;
+        this.user = user;
         this.stars = stars;
         this.thumbnailUrl = thumbnailUrl;
         this.createdAt = LocalDateTime.now();
