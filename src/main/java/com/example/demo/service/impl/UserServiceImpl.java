@@ -1,6 +1,6 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.dto.response.MyPostResponseDTO;
+import com.example.demo.dto.response.PostPreviewResponseDTO;
 import com.example.demo.dto.response.MyProfileResponseDTO;
 import com.example.demo.dto.response.UserResponseDTO;
 import com.example.demo.dto.UserUpdateDTO;
@@ -9,10 +9,8 @@ import com.example.demo.entity.UserCategory;
 import com.example.demo.entity.UserEntity;
 import com.example.demo.error.*;
 import com.example.demo.jwt.JwtProvider;
-import com.example.demo.mapper.PostMapper;
 import com.example.demo.mapper.UserMapper;
 import com.example.demo.repository.CategoryRepository;
-import com.example.demo.repository.PostRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.PostService;
 import com.example.demo.service.UserService;
@@ -55,8 +53,8 @@ public class UserServiceImpl implements UserService {
 
        MyProfileResponseDTO myProfile = userMapper.toMyProfileResponseDTO(user);
 
-       List<MyPostResponseDTO> myPosts = postService.getMyPosts(userId);
-       List<MyPostResponseDTO> likedPosts = postService.getMyLikedPosts(userId);
+       List<PostPreviewResponseDTO> myPosts = postService.getMyPosts(userId);
+       List<PostPreviewResponseDTO> likedPosts = postService.getMyLikedPosts(userId);
 
        return MyProfileResponseDTO.builder()
                .nickname(myProfile.getNickname())
