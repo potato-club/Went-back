@@ -2,17 +2,14 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.response.MyProfileResponseDTO;
 import com.example.demo.dto.response.UserResponseDTO;
-import com.example.demo.dto.UserUniqueDTO;
 import com.example.demo.dto.UserUpdateDTO;
 import com.example.demo.entity.UserEntity;
 import com.example.demo.security.CurrentUser;
 import com.example.demo.security.CustomUserDetails;
 import com.example.demo.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
