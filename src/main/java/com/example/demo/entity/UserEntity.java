@@ -32,9 +32,16 @@ public class UserEntity {
     private String email;
     private LocalDate birthDate;
     private String region;
+    private String profileImageUrl;
 
-    @OneToMany(mappedBy = "writer", cascade = CascadeType.ALL)
-    private List<Post> posts;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Post> posts = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Comment> comments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<PostLike> likes = new ArrayList<>();
 
     // 유저가 선호하는 카테고리
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
