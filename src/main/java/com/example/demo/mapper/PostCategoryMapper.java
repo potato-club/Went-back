@@ -1,6 +1,6 @@
 package com.example.demo.mapper;
 
-import com.example.demo.dto.PostCategoryDTO;
+import com.example.demo.dto.response.PostCategoryDTO;
 import com.example.demo.entity.Category;
 import com.example.demo.entity.Post;
 import com.example.demo.entity.PostCategory;

@@ -1,8 +1,7 @@
 package com.example.demo.entity;
 
 import com.example.demo.dto.response.UserResponseDTO;
-import com.example.demo.dto.UserUpdateDTO;
-import com.example.demo.repository.CategoryRepository;
+import com.example.demo.dto.request.UserUpdateDTO;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -13,8 +12,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toList;
 
 @Entity
 @Getter
@@ -91,7 +88,7 @@ public class UserEntity {
 
     public UserEntity updateByDto(UserUpdateDTO userUpdateDTO) {
         this.birthDate = LocalDate.parse(userUpdateDTO.getBirthDate());
-        this.nickname = userUpdateDTO.getNickName();
+        this.nickname = userUpdateDTO.getNickname();
         this.region = userUpdateDTO.getRegion();
         this.profileImageUrl = userUpdateDTO.getProfileImageUrl();
         return this;

@@ -2,7 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.response.MyProfileResponseDTO;
 import com.example.demo.dto.response.UserResponseDTO;
-import com.example.demo.dto.UserUpdateDTO;
+import com.example.demo.dto.request.UserUpdateDTO;
 import com.example.demo.entity.UserEntity;
 import com.example.demo.security.CurrentUser;
 import com.example.demo.security.CustomUserDetails;

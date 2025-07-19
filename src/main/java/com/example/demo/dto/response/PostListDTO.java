@@ -1,7 +1,6 @@
-package com.example.demo.dto;
+package com.example.demo.dto.response;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 public class PostListDTO {
     private Long postId;

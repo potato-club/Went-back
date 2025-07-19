@@ -1,6 +1,6 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.PostListDTO;
+import com.example.demo.dto.response.PostListDTO;
 import com.example.demo.dto.request.PostCreationDTO;
 import com.example.demo.dto.request.PostUpdateDTO;
 import com.example.demo.dto.response.PostPreviewResponseDTO;
