@@ -1,7 +1,5 @@
-package com.example.demo.dto;
+package com.example.demo.dto.request;
 
-import com.example.demo.entity.Category;
-import jakarta.persistence.ElementCollection;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,7 +12,7 @@ import java.util.List;
 @Getter
 public class UserUpdateDTO {
     @NotBlank(message = "nickname is required.")
-    private String nickName;
+    private String nickname;
 
     //optional value
     //yyyy-MM-dd

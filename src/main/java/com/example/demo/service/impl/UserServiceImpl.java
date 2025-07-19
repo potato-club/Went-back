@@ -3,7 +3,7 @@ package com.example.demo.service.impl;
 import com.example.demo.dto.response.PostPreviewResponseDTO;
 import com.example.demo.dto.response.MyProfileResponseDTO;
 import com.example.demo.dto.response.UserResponseDTO;
-import com.example.demo.dto.UserUpdateDTO;
+import com.example.demo.dto.request.UserUpdateDTO;
 import com.example.demo.entity.Category;
 import com.example.demo.entity.UserCategory;
 import com.example.demo.entity.UserEntity;
