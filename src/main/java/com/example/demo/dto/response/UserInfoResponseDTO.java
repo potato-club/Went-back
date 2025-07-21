@@ -10,11 +10,10 @@ import java.util.List;
 @Getter
 @Builder
 @AllArgsConstructor
-public class MyProfileResponseDTO {
+public class UserInfoResponseDTO {
     private String nickname;
     private String region;
+    private String profileImageUrl;
     private LocalDate birthDate;
     private List<CategoryResponseDTO> categories;
-    private List<PostPreviewResponseDTO> myPosts;
-    private List<PostPreviewResponseDTO> likedPosts;
 }

@@ -1,6 +1,6 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.response.MyProfileResponseDTO;
+import com.example.demo.dto.response.UserInfoResponseDTO;
 import com.example.demo.dto.response.UserResponseDTO;
 import com.example.demo.dto.request.UserUpdateDTO;
 import com.example.demo.entity.UserEntity;
@@ -30,11 +30,11 @@ public class UserController {
         return ResponseEntity.ok(userResponseDTO);
     }
 
-    @Operation(summary = "마이페이지 조회", description = "로그인된 사용자의 마이페이지 정보를 조회합니다.")
+    @Operation(summary = "내 정보 조회", description = "마이페이지의 사용자 정보를 조회합니다.")
     @GetMapping("/me")
-    public ResponseEntity<MyProfileResponseDTO> getMyProfile(@CurrentUser CustomUserDetails currentUser) {
-        MyProfileResponseDTO myProfileResponseDTO = userService.getMyProfile(currentUser.getUserId());
-        return ResponseEntity.ok(myProfileResponseDTO);
+    public ResponseEntity<UserInfoResponseDTO> getUserInfo(@CurrentUser CustomUserDetails currentUser) {
+        UserInfoResponseDTO userInfoResponseDTO = userService.getUserInfo(currentUser.getUserId());
+        return ResponseEntity.ok(userInfoResponseDTO);
     }
 
     @Operation(summary = "전체 사용자 조회", description = "등록된 모든 사용자를 조회합니다.")

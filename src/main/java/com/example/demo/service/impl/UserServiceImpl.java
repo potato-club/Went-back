@@ -1,7 +1,7 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.dto.response.PostPreviewResponseDTO;
-import com.example.demo.dto.response.MyProfileResponseDTO;
+import com.example.demo.dto.response.UserInfoResponseDTO;
 import com.example.demo.dto.response.UserResponseDTO;
 import com.example.demo.dto.request.UserUpdateDTO;
 import com.example.demo.entity.Category;
@@ -28,7 +28,6 @@ public class UserServiceImpl implements UserService {
     private final JwtProvider jwtProvider;
     private final CategoryRepository categoryRepository;
     private final UserMapper userMapper;
-    private final PostService postService;
 
     public UserResponseDTO updateProfile(UserEntity currentUser, UserUpdateDTO userUpdateDTO) {
         currentUser.updateByDto(userUpdateDTO);
@@ -47,22 +46,18 @@ public class UserServiceImpl implements UserService {
         return savedUser.toUserResponseDTO();
     }
 
-    public MyProfileResponseDTO getMyProfile(Long userId) {
+    public UserInfoResponseDTO getUserInfo(Long userId) {
        UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다.", ErrorCode.USER_NOT_FOUND));
 
-       MyProfileResponseDTO myProfile = userMapper.toMyProfileResponseDTO(user);
+       UserInfoResponseDTO myProfile = userMapper.toUserInfoResponseDTO(user);
 
-       List<PostPreviewResponseDTO> myPosts = postService.getMyPosts(userId);
-       List<PostPreviewResponseDTO> likedPosts = postService.getMyLikedPosts(userId);
-
-       return MyProfileResponseDTO.builder()
+       return UserInfoResponseDTO.builder()
                .nickname(myProfile.getNickname())
                .region(myProfile.getRegion())
+               .profileImageUrl(myProfile.getProfileImageUrl())
                .birthDate(myProfile.getBirthDate())
                .categories(myProfile.getCategories())
-               .myPosts(myPosts)
-               .likedPosts(likedPosts)
                .build();
     }
 
