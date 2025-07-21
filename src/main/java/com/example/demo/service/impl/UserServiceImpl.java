@@ -1,6 +1,6 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.dto.response.PostPreviewResponseDTO;
+import com.example.demo.dto.response.UserHomeResponseDTO;
 import com.example.demo.dto.response.UserInfoResponseDTO;
 import com.example.demo.dto.response.UserResponseDTO;
 import com.example.demo.dto.request.UserUpdateDTO;
@@ -12,11 +12,11 @@ import com.example.demo.jwt.JwtProvider;
 import com.example.demo.mapper.UserMapper;
 import com.example.demo.repository.CategoryRepository;
 import com.example.demo.repository.UserRepository;
-import com.example.demo.service.PostService;
 import com.example.demo.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -46,6 +46,7 @@ public class UserServiceImpl implements UserService {
         return savedUser.toUserResponseDTO();
     }
 
+    @Transactional(readOnly = true)
     public UserInfoResponseDTO getUserInfo(Long userId) {
        UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다.", ErrorCode.USER_NOT_FOUND));
@@ -61,12 +62,22 @@ public class UserServiceImpl implements UserService {
                .build();
     }
 
+    @Transactional(readOnly = true)
+    public UserHomeResponseDTO getUserHomeResponseDTO(Long userId) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다.", ErrorCode.USER_NOT_FOUND));
+
+        return userMapper.toUserHomeResponseDTO(user);
+    }
+
+    @Transactional(readOnly = true)
     public List<UserResponseDTO> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(UserEntity::toUserResponseDTO)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public UserResponseDTO getUserById(Long id) {
         UserEntity user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다.", ErrorCode.USER_NOT_FOUND));
