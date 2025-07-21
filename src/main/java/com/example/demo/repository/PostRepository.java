@@ -11,4 +11,5 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     Page<Post> findAllByCategory_CategoryId(Long categoryId, Pageable pageable); // 수정
     List<Post> findByUser_UserId(Long userId); // 수정
     List<Post> findTop3ByCategory_CategoryIdOrderByCreatedAtDesc(Long categoryId);
+    List<Post> findTop4ByUser_UserIdOrderByCreatedAtDesc(Long userId);
 }

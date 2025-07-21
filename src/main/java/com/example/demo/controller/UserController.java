@@ -1,11 +1,13 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.response.PostPreviewResponseDTO;
 import com.example.demo.dto.response.UserInfoResponseDTO;
 import com.example.demo.dto.response.UserResponseDTO;
 import com.example.demo.dto.request.UserUpdateDTO;
 import com.example.demo.entity.UserEntity;
 import com.example.demo.security.CurrentUser;
 import com.example.demo.security.CustomUserDetails;
+import com.example.demo.service.PostService;
 import com.example.demo.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,6 +24,7 @@ import java.util.List;
 @RequestMapping("/api/users")
 public class UserController {
     private final UserService userService;
+    private final PostService postService;
 
     @Operation(summary = "사용자 프로필 정보 입력/수정", description = "회원가입 이후, 사용자 프로필을 최초로 입력하거나 수정합니다.")
     @PutMapping("/profile")
@@ -35,6 +38,20 @@ public class UserController {
     public ResponseEntity<UserInfoResponseDTO> getUserInfo(@CurrentUser CustomUserDetails currentUser) {
         UserInfoResponseDTO userInfoResponseDTO = userService.getUserInfo(currentUser.getUserId());
         return ResponseEntity.ok(userInfoResponseDTO);
+    }
+
+    @Operation(summary = "내가 쓴 게시글 목록 조회", description = "마이페이지에서 내가 작성한 게시글 목록을 조회합니다.")
+    @GetMapping("/me/posts")
+    public ResponseEntity<List<PostPreviewResponseDTO>> getMyPosts(@CurrentUser CustomUserDetails currentUser) {
+        List<PostPreviewResponseDTO> myPosts = postService.getMyPosts(currentUser.getUserId());
+        return ResponseEntity.ok(myPosts);
+    }
+
+    @Operation(summary = "내가 좋아요 누른 게시글 목록 조회", description = "마이페이지에서 내가 좋아요 누른 게시글 목록을 조회합니다.")
+    @GetMapping("/me/likes")
+    public ResponseEntity<List<PostPreviewResponseDTO>> getMyLikedPosts(@CurrentUser CustomUserDetails currentUser) {
+        List<PostPreviewResponseDTO> likedPosts = postService.getMyLikedPosts(currentUser.getUserId());
+        return ResponseEntity.ok(likedPosts);
     }
 
     @Operation(summary = "전체 사용자 조회", description = "등록된 모든 사용자를 조회합니다.")
