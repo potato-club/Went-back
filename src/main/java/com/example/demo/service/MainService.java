@@ -1,7 +1,7 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.response.MainContentResponseDTO;
+import com.example.demo.dto.response.CategoryPostPreviewResponseDTO;
 
 public interface MainService {
-    MainContentResponseDTO getMainContent(Long userId);
+    CategoryPostPreviewResponseDTO getCategoryPostPreview(Long categoryId);
 }
