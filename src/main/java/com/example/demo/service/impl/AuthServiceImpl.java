@@ -29,7 +29,6 @@ public class AuthServiceImpl implements AuthService {
         );
     }
 
-    // 토큰 재발급
     public void reissueToken(HttpServletResponse response, String refreshToken) {
         if (refreshToken == null || refreshToken.isBlank()) {
             throw new InvalidTokenException("Refresh Token이 존재하지 않습니다.", ErrorCode.INVALID_REFRESH_TOKEN);
@@ -53,4 +52,17 @@ public class AuthServiceImpl implements AuthService {
         jwtProvider.setHeaderAccessToken(response, jwtToken.getAccessToken());
         jwtProvider.setHeaderRefreshToken(response, jwtToken.getRefreshToken());
     }
+
+    public void logout(String accessToken) {
+        if (!jwtProvider.validateToken(accessToken)) {
+            throw new InvalidTokenException("유효하지 않은 Access Token 입니다.", ErrorCode.INVALID_ACCESS_TOKEN);
+        }
+
+        long expiration = jwtProvider.getExpiration(accessToken);
+        redisTemplate.opsForValue().set(accessToken, "logout", expiration, TimeUnit.MILLISECONDS);
+
+        String username = jwtProvider.getUsernameFromToken(accessToken);
+        redisTemplate.delete("RT:" + username);
+    }
+
 }

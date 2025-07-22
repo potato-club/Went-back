@@ -6,4 +6,5 @@ import org.springframework.stereotype.Service;
 public interface AuthService {
     void saveRefreshToken(String username, String refreshToken);
     void reissueToken(HttpServletResponse response, String refreshToken);
+    void logout(String accessToken);
 }
