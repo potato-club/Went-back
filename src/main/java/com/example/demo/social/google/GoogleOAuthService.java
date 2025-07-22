@@ -5,6 +5,7 @@ import com.example.demo.entity.UserEntity;
 import com.example.demo.jwt.JwtProvider;
 import com.example.demo.jwt.JwtToken;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.service.AuthService;
 import com.example.demo.social.google.dto.GoogleUserInfo;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
@@ -17,6 +18,7 @@ public class GoogleOAuthService {
     private final UserRepository userRepository;
     private final JwtProvider jwtProvider;
     private final GoogleIdTokenVerifierService googleIdTokenVerifierService;
+    private final AuthService authService;
 
     @Transactional
     public UserResponseDTO  loginWithGoogle(String idToken, HttpServletResponse response) {
@@ -42,6 +44,8 @@ public class GoogleOAuthService {
         JwtToken jwtToken = jwtProvider.issueToken(user);
         jwtProvider.setHeaderAccessToken(response, jwtToken.getAccessToken());
         jwtProvider.setHeaderRefreshToken(response, jwtToken.getRefreshToken());
+
+        authService.saveRefreshToken(user.getEmail(), jwtToken.getRefreshToken());
 
         if (isNewUser) {
             return user.toUserResponseDTO();

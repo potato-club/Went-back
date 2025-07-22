@@ -5,17 +5,29 @@ import com.example.demo.error.InvalidTokenException;
 import com.example.demo.error.UnAuthorizedException;
 import com.example.demo.jwt.JwtProvider;
 import com.example.demo.jwt.JwtToken;
-import com.example.demo.repository.UserRepository;
 import com.example.demo.service.AuthService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
+import static com.example.demo.jwt.JwtConstant.REFRESH_TOKEN_EXPIRE_TIME;
 import org.springframework.stereotype.Service;
+
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
-    private final UserRepository userRepository;
     private final JwtProvider jwtProvider;
+    private final RedisTemplate<String, String> redisTemplate;
+
+    public void saveRefreshToken(String username, String refreshToken) {
+        redisTemplate.opsForValue().set(
+                "RT:" + username,
+                refreshToken,
+                REFRESH_TOKEN_EXPIRE_TIME,
+                TimeUnit.MILLISECONDS
+        );
+    }
 
     // 토큰 재발급
     public void reissueToken(HttpServletResponse response, String refreshToken) {
@@ -27,7 +39,16 @@ public class AuthServiceImpl implements AuthService {
             throw new UnAuthorizedException("Refresh Token이 유효하지 않습니다.", ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
+        String username = jwtProvider.getUsernameFromToken(refreshToken);
+        String storedRefreshToken = redisTemplate.opsForValue().get("RT:" + username);
+
+        if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken)) {
+            throw new UnAuthorizedException("저장된 Refresh Token과 일치하지 않습니다.", ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
         JwtToken jwtToken = jwtProvider.reissueToken(refreshToken);
+
+        saveRefreshToken(username, jwtToken.getRefreshToken());
 
         jwtProvider.setHeaderAccessToken(response, jwtToken.getAccessToken());
         jwtProvider.setHeaderRefreshToken(response, jwtToken.getRefreshToken());
