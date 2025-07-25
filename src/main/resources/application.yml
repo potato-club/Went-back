@@ -2,10 +2,6 @@ server:
   port: 8080
   address: 0.0.0.0
 spring:
-  data:
-    redis:
-      host: 3.35.97.18
-      port: 6379
   profiles:
     active: local
   datasource:

@@ -4,17 +4,14 @@ server:
 spring:
   data:
     redis:
-      host: 3.35.97.18
-      port: 6379
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
   datasource:
     url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}
     username: ${DB_USER}
     password: ${DB_PASS}
     driver-class-name: com.mysql.cj.jdbc.Driver
-  data:
-    redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
+
   jpa:
     hibernate:
       ddl-auto: validate
