@@ -1,5 +1,6 @@
 package com.example.demo.jwt;
 
+import com.example.demo.error.ErrorCode;
 import com.example.demo.error.InvalidTokenException;
 import com.example.demo.error.UnAuthorizedException;
 import jakarta.servlet.FilterChain;
@@ -9,6 +10,7 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -19,6 +21,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends GenericFilterBean {
     private final JwtProvider jwtProvider;
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
@@ -29,24 +32,15 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
             chain.doFilter(request, response);
             return;
         }
-//
-//        if (requestURI.startsWith("/swagger-ui/") || requestURI.startsWith("/v3/api-docs/") || requestURI.startsWith("/api/users")) {
-//            chain.doFilter(request, response);
-//            return;
-//        }
-//
-//        if (requestURI.equals("/api/auth/google")) {
-//            chain.doFilter(request, response);
-//            return;
-//        }
-//
-//        if (requestURI.equals("/api/auth/kakao")) {
-//            chain.doFilter(request, response);
-//            return;
-//        }
 
         try {
             String accessToken = jwtProvider.resolveAccessToken(httpRequest);
+
+            String isLogout = redisTemplate.opsForValue().get(accessToken);
+            if ("logout".equals(isLogout)) {
+                throw new UnAuthorizedException("로그아웃된 토큰입니다.", ErrorCode.INVALID_ACCESS_TOKEN);
+            }
+
             Authentication authentication = jwtProvider.getAuthentication(accessToken);
             SecurityContextHolder.getContext().setAuthentication(authentication);
             chain.doFilter(request, response);

@@ -23,8 +23,7 @@ public enum ErrorCode {
     INVALID_SOCIAL_TOKEN(HttpStatus.UNAUTHORIZED, 4015, "Invalid social login token"),
 
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, 4040, "User Not Found"),
-    BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, 4041, "Book Not Found"),
-    AUTHOR_NOT_FOUND(HttpStatus.NOT_FOUND, 4042, "Author Not Found"),
+    CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, 4041, "Category Not Found"),
 
     USER_ALREADY_EXISTS(HttpStatus.CONFLICT, 4091, "Username already exists"),
 

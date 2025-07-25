@@ -210,4 +210,16 @@ public class JwtProvider {
             throw new InvalidTokenException("토큰 타입이 올바르지 않습니다.", ErrorCode.INVALID_TOKEN_TYPE);
         }
     }
+
+    // 토큰 만료 시간 반환
+    public long getExpiration(String token) {
+        Date expiration = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getExpiration();
+
+        return expiration.getTime() - System.currentTimeMillis();
+    }
 }

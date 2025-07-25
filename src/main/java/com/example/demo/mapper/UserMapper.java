@@ -1,7 +1,6 @@
 package com.example.demo.mapper;
 
-import com.example.demo.dto.response.CategoryResponseDTO;
-import com.example.demo.dto.response.MyProfileResponseDTO;
+import com.example.demo.dto.response.UserInfoResponseDTO;
 import com.example.demo.dto.response.UserHomeResponseDTO;
 import com.example.demo.dto.response.UserResponseDTO;
 import com.example.demo.entity.UserEntity;
@@ -13,10 +12,11 @@ import org.springframework.stereotype.Component;
 public class UserMapper {
     private final CategoryMapper categoryMapper;
 
-    public MyProfileResponseDTO toMyProfileResponseDTO(UserEntity user) {
-        return MyProfileResponseDTO.builder()
+    public UserInfoResponseDTO toUserInfoResponseDTO(UserEntity user) {
+        return UserInfoResponseDTO.builder()
                 .nickname(user.getNickname())
                 .region(user.getRegion())
+                .profileImageUrl(user.getProfileImageUrl())
                 .birthDate(user.getBirthDate())
                 .categories(
                         user.getUserCategories().stream()

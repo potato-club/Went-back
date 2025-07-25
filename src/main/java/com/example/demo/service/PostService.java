@@ -15,6 +15,7 @@ import com.example.demo.repository.PostRepository;
 import com.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -152,7 +153,7 @@ public class PostService {
 
     @Transactional(readOnly = true)
     public List<PostPreviewResponseDTO> getMyPosts(Long userId) {
-        List<Post> posts = postRepository.findByUser_UserId(userId);
+        List<Post> posts = postRepository.findTop4ByUser_UserIdOrderByCreatedAtDesc(userId);
         return posts.stream()
                 .map(postMapper::toPostPreviewResponseDTO)
                 .toList();
@@ -163,7 +164,8 @@ public class PostService {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
 
-        List<Post> likedPosts = postLikeRepository.findLikedPostByUser(user);
+        Pageable myLikedPostsPageable = PageRequest.of(0, 4);
+        List<Post> likedPosts = postLikeRepository.findLikedPostByUser(user, myLikedPostsPageable);
 
         return likedPosts.stream()
                 .map(postMapper::toPostPreviewResponseDTO)

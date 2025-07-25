@@ -4,9 +4,8 @@ import com.example.demo.dto.response.UserResponseDTO;
 import com.example.demo.entity.UserEntity;
 import com.example.demo.jwt.JwtProvider;
 import com.example.demo.jwt.JwtToken;
-import com.example.demo.redis.RefreshToken;
-import com.example.demo.redis.RefreshTokenRepository;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.service.AuthService;
 import com.example.demo.social.kakao.dto.KakaoTokenResponse;
 import com.example.demo.social.kakao.dto.KakaoUserInfo;
 import jakarta.servlet.http.HttpServletResponse;
@@ -22,8 +21,7 @@ public class KakaoOAuthService {
     private final KakaoIdTokenVerifierService kakaoIdTokenVerifierService;
     private final UserRepository userRepository;
     private final JwtProvider jwtProvider;
-    private final RefreshTokenRepository refreshTokenRepository;
-
+    private final AuthService authService;
 
     @Value( "${kakao.client-id}")
     private String clientId;
@@ -57,16 +55,10 @@ public class KakaoOAuthService {
         }
 
         JwtToken jwtToken = jwtProvider.issueToken(user);
-
-        refreshTokenRepository.save(
-                RefreshToken.builder()
-                        .email(user.getEmail())
-                        .token(jwtToken.getRefreshToken())
-                        .build()
-        );
-
         jwtProvider.setHeaderAccessToken(response, jwtToken.getAccessToken());
         jwtProvider.setHeaderRefreshToken(response, jwtToken.getRefreshToken());
+
+        authService.saveRefreshToken(user.getEmail(), jwtToken.getRefreshToken());
 
         if (isNewUser) {
             return user.toUserResponseDTO();
