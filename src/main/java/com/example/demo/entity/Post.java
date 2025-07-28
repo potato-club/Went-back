@@ -38,7 +38,7 @@ public class Post {
 
     private Integer stars; // 추가
     private String thumbnailUrl; // 추가
-    private Integer viewCount; // 추가
+    private Integer viewCount = 0; // 추가
 
     // 좋아요 연관관계
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -57,7 +57,6 @@ public class Post {
         this.stars = stars;
         this.thumbnailUrl = thumbnailUrl;
         this.createdAt = LocalDateTime.now();
-        this.viewCount = 1; // 초기값 설정
     }
 
     public void updateContent(String content) {

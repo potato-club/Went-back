@@ -16,4 +16,5 @@ public class PostPreviewResponseDTO {
     private int stars;
     private String thumbnailUrl;
     private LocalDateTime createdDate;
+    private int viewCount;
 }

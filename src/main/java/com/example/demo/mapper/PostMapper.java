@@ -14,6 +14,7 @@ public class PostMapper {
                 .createdDate(post.getCreatedAt())
                 .stars(post.getStars())
                 .likeCount(post.getLikes() != null ? post.getLikes().size() : 0)
+                .viewCount(post.getViewCount() != null ? post.getViewCount() : 0)
                 .build();
     }
 }
