@@ -150,7 +150,7 @@ public class PostService {
 
     @Transactional(readOnly = true)
     public List<PostPreviewResponseDTO> getMyPosts(Long userId) {
-        List<Post> posts = postRepository.findTop4ByUser_UserIdOrderByCreatedAtDesc(userId);
+        List<Post> posts = postRepository.findTop4WithLikesByUserId(userId);
         return posts.stream()
                 .map(postMapper::toPostPreviewResponseDTO)
                 .toList();
@@ -162,7 +162,7 @@ public class PostService {
                 .orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
 
         Pageable myLikedPostsPageable = PageRequest.of(0, 4);
-        List<Post> likedPosts = postLikeRepository.findLikedPostByUser(user, myLikedPostsPageable);
+        List<Post> likedPosts = postRepository.findLikedPostWithLikesByUser(userId, myLikedPostsPageable);
 
         return likedPosts.stream()
                 .map(postMapper::toPostPreviewResponseDTO)
