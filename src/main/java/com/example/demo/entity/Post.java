@@ -40,7 +40,7 @@ public class Post {
     private String thumbnailUrl; // 추가
     private Integer viewCount = 0; // 추가
 
-    @Column(nullable = false)
+    @Column(name = "like_count", nullable = false)
     private Integer likeCount = 0;
 
     @Column(name = "comment_count", nullable = false)
