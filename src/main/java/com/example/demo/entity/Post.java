@@ -43,7 +43,7 @@ public class Post {
     @Column(nullable = false)
     private Integer likeCount = 0;
 
-    @Column(nullable = false)
+    @Column(name = "comment_count", nullable = false)
     private Integer commentCount = 0;
 
     // 좋아요 연관관계
