@@ -13,9 +13,6 @@ public class PostResponseDTO {
     @Schema(description = "게시글 ID", example = "100")
     private Long postId;
 
-    @Schema(description = "작성자 ID (User)", example = "1")
-    private Long userId;
-
     @Schema(description = "게시글 제목", example = "오늘의 일상")
     private String title;
 

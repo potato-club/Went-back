@@ -60,7 +60,6 @@ public class PostService {
 
         return PostResponseDTO.builder()
                 .postId(post.getPostId())
-                .userId(post.getUser().getUserId())
                 .title(post.getTitle())
                 .content(post.getContent())
                 .categoryId(post.getCategory().getCategoryId())
@@ -98,7 +97,6 @@ public class PostService {
 
         return PostResponseDTO.builder()
                 .postId(post.getPostId())
-                .userId(post.getUser().getUserId())
                 .title(post.getTitle())
                 .content(post.getContent())
                 .categoryId(post.getCategory().getCategoryId())
@@ -139,7 +137,6 @@ public class PostService {
 
         return PostResponseDTO.builder()
                 .postId(post.getPostId())
-                .userId(post.getUser().getUserId())
                 .title(post.getTitle())
                 .content(post.getContent())
                 .categoryId(post.getCategory().getCategoryId())
