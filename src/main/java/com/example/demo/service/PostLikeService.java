@@ -30,11 +30,13 @@ public class PostLikeService {
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 사용자입니다."));
 
         boolean alreadyLiked = postLikeRepository.existsByPostAndUser(post, user);
-        if (alreadyLiked) {
-            throw new IllegalStateException("이미 좋아요를 눌렀습니다.");
-        }
+        if (alreadyLiked) throw new IllegalStateException("이미 좋아요를 눌렀습니다.");
 
         postLikeRepository.save(new PostLike(post, user));
+
+        // 좋아요 수 증가
+        post.setLikeCount(post.getLikeCount() + 1);
+        postRepository.save(post);
     }
 
     // 좋아요 취소
@@ -46,6 +48,10 @@ public class PostLikeService {
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 사용자입니다."));
 
         postLikeRepository.deleteByPostAndUser(post, user);
+
+        // 좋아요 수 감소
+        post.setLikeCount(Math.max(0, post.getLikeCount() - 1));
+        postRepository.save(post);
     }
 
     // 좋아요 여부 확인

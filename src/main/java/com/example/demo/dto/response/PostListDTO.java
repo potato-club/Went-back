@@ -13,8 +13,12 @@ public class PostListDTO {
     private Integer commentCount;
     private Integer stars; // 별점 필드 추가
     private String thumbnailUrl;
+    private Integer likeCount;
 
     public PostListDTO() {}
+
+    public Integer getLikeCount() { return likeCount; }
+    public void setLikeCount(Integer likeCount) { this.likeCount = likeCount; }
 
     public Long getPostId() { return postId; }
     public void setPostId(Long postId) { this.postId = postId; }

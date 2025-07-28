@@ -66,7 +66,7 @@ public class PostController {
 
     private Sort getSortOption(String sort) {
         return switch (sort) {
-            case "likes" -> Sort.by(Sort.Direction.DESC, "likes");
+            case "likes" -> Sort.by(Sort.Direction.DESC, "likeCount");
             case "comments" -> Sort.by(Sort.Direction.DESC, "commentCount");
             case "stars" -> Sort.by(Sort.Direction.DESC, "stars");
             case "views" -> Sort.by(Sort.Direction.DESC, "viewCount");

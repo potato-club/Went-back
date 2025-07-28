@@ -122,6 +122,8 @@ public class PostService {
             dto.setViewCount(post.getViewCount());
             dto.setStars(post.getStars());
             dto.setThumbnailUrl(post.getThumbnailUrl());
+            dto.setLikeCount(post.getLikeCount());
+            dto.setCommentCount(post.getCommentCount());
             return dto;
         });
     }

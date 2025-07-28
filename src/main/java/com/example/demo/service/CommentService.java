@@ -41,6 +41,10 @@ public class CommentService {
                         .parent(parent)
                         .build()
         );
+
+        post.setCommentCount(post.getCommentCount() + 1);
+        postRepo.save(post);
+
         return toDTO(saved);
     }
 
@@ -52,6 +56,7 @@ public class CommentService {
     }
 
     // 댓글 삭제 (본인 댓글만 가능)
+    @Transactional
     public void delete(Long commentId, Long userId) {
         Comment comment = commentRepo.findById(commentId)
                 .orElseThrow(() -> new NoSuchElementException("댓글이 존재하지 않습니다."));
@@ -59,6 +64,10 @@ public class CommentService {
         if (!comment.getUser().getUserId().equals(userId)) {
             throw new SecurityException("본인의 댓글만 삭제할 수 있습니다.");
         }
+
+        Post post = comment.getPost();
+        post.setCommentCount(Math.max(0, post.getCommentCount() - 1));
+        postRepo.save(post);
 
         commentRepo.delete(comment);
     }

@@ -21,7 +21,7 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long postId;
 
-    private String title; // 추가
+    private String title;
 
     @Lob
     private String content;
@@ -40,6 +40,12 @@ public class Post {
     private String thumbnailUrl; // 추가
     private Integer viewCount = 0; // 추가
 
+    @Column(nullable = false)
+    private Integer likeCount = 0;
+
+    @Column(nullable = false)
+    private Integer commentCount = 0;
+
     // 좋아요 연관관계
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostLike> likes = new ArrayList<>();
@@ -57,6 +63,8 @@ public class Post {
         this.stars = stars;
         this.thumbnailUrl = thumbnailUrl;
         this.createdAt = LocalDateTime.now();
+        this.likeCount = 0;
+        this.commentCount = 0;
     }
 
     public void updateContent(String content) {
