@@ -13,6 +13,7 @@ import com.example.demo.repository.CategoryRepository;
 import com.example.demo.repository.PostLikeRepository;
 import com.example.demo.repository.PostRepository;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,12 +36,11 @@ public class PostService {
     private final PostLikeRepository postLikeRepository;
     private final PostMapper postMapper;
 
-    // 게시글 생성 (인증된 사용자 기반)
     @Transactional
-    public PostResponseDTO createPost(PostCreationDTO dto, Long userId, List<MultipartFile> files) {
+    public PostResponseDTO createPost(PostCreationDTO dto, CustomUserDetails userDetails, List<MultipartFile> files) {
         Category category = categoryRepository.findById(dto.getCategoryId())
                 .orElseThrow(() -> new NoSuchElementException("카테고리가 존재하지 않습니다."));
-        UserEntity user = userRepository.findById(userId)
+        UserEntity user = userRepository.findById(userDetails.getUserId())
                 .orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
 
         Post post = Post.builder()

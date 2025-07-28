@@ -36,7 +36,7 @@ public class PostController {
             @RequestBody PostCreationDTO req,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        PostResponseDTO created = postService.createPost(req, userDetails.getUserId(), null);
+        PostResponseDTO created = postService.createPost(req, userDetails, null);
         return ResponseEntity.ok(created);
     }
 
