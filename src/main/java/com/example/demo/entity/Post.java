@@ -36,9 +36,13 @@ public class Post {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
-    private Integer stars; // 추가
+    @Column(name = "stars", nullable = false)
+    private Integer stars = 0;
+
     private String thumbnailUrl; // 추가
-    private Integer viewCount = 0; // 추가
+
+    @Column(name = "view_count", nullable = false)
+    private Integer viewCount = 0;
 
     @Column(name = "like_count", nullable = false)
     private Integer likeCount = 0;
@@ -65,6 +69,7 @@ public class Post {
         this.createdAt = LocalDateTime.now();
         this.likeCount = 0;
         this.commentCount = 0;
+        this.viewCount = 0;
     }
 
     public void updateContent(String content) {
