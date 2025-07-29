@@ -47,12 +47,31 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+
                         .requestMatchers("/api/oauth/**").permitAll()
                         .requestMatchers("/api/auth/reissue").permitAll()
                         .requestMatchers("/api/categories/**").permitAll()
                         .requestMatchers("/api/main/**").permitAll()
+
+                        .requestMatchers("/api/posts/list").permitAll()
+                        .requestMatchers("/api/posts/{postId:[\\d]+}").permitAll()
+
+                        .requestMatchers("/api/posts/{postId:[\\d]+}/likes/count").permitAll()
+                        .requestMatchers("/api/posts/{postId:[\\d]+}/likes/users").permitAll()
+
+                        .requestMatchers("/api/posts/{postId:[\\d]+}/likes").authenticated()
+                        .requestMatchers("/api/posts/{postId:[\\d]+}/likes/me").authenticated()
+
+                        .requestMatchers("/api/comments/*").permitAll()
+                        .requestMatchers("/api/comments/*/paged").permitAll()
+                        .requestMatchers("/api/comments/*/structured").permitAll()
+
                         .requestMatchers("/api/auth/logout").authenticated()
-                        .requestMatchers("/api/users/profile", "/api/users/me").authenticated()
+                        .requestMatchers("/api/comments/**").authenticated()
+                        .requestMatchers("/api/users/**").authenticated()
+
+                        .requestMatchers("/api/posts/**").authenticated()
+
                         .anyRequest().permitAll()
                 );
 

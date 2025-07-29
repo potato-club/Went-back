@@ -33,16 +33,18 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
             return;
         }
 
+
+        String accessToken = jwtProvider.resolveAccessToken(httpRequest);
+
         try {
-            String accessToken = jwtProvider.resolveAccessToken(httpRequest);
-
-            String isLogout = redisTemplate.opsForValue().get(accessToken);
-            if ("logout".equals(isLogout)) {
-                throw new UnAuthorizedException("로그아웃된 토큰입니다.", ErrorCode.INVALID_ACCESS_TOKEN);
+            if (accessToken != null && jwtProvider.validateToken(accessToken)) {
+                String isLogout = redisTemplate.opsForValue().get(accessToken);
+                if ("logout".equals(isLogout)) {
+                    throw new UnAuthorizedException("로그아웃된 토큰입니다.", ErrorCode.INVALID_ACCESS_TOKEN);
+                }
+                Authentication authentication = jwtProvider.getAuthentication(accessToken);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
-
-            Authentication authentication = jwtProvider.getAuthentication(accessToken);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
             chain.doFilter(request, response);
         } catch (InvalidTokenException | UnAuthorizedException e) {
             HttpServletResponse httpServletResponse = (HttpServletResponse) response;

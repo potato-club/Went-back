@@ -173,16 +173,11 @@ public class JwtProvider {
         String token = request.getHeader("Authorization");
 
         if (token == null || token.isBlank() || !token.startsWith("Bearer ")) {
-            throw new UnAuthorizedException("Access Token이 존재하지 않거나, 잘못된 형식입니다.", ErrorCode.INVALID_ACCESS_TOKEN);
+            return  null;
         }
 
         String accessToken = token.substring(7);
 
-        if (!validateToken(accessToken)) {
-            throw  new InvalidTokenException("Access Token이 유효하지 않습니다.", ErrorCode.INVALID_ACCESS_TOKEN);
-        }
-
-        assertTokenType(accessToken, "access");
         return accessToken;
     }
 
