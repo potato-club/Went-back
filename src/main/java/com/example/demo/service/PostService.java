@@ -114,7 +114,6 @@ public class PostService {
         return posts.map(post -> {
             PostListDTO dto = new PostListDTO();
             dto.setPostId(post.getPostId());
-            dto.setUserId(String.valueOf(post.getUser().getUserId()));
             dto.setTitle(post.getTitle());
             dto.setContent(post.getContent());
             dto.setCreatedAt(post.getCreatedAt());

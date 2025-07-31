@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 
 public class PostListDTO {
     private Long postId;
-    private String userId; // String (socialKey)
     private String title;
     private String content;
     private LocalDateTime createdAt;
@@ -22,9 +21,6 @@ public class PostListDTO {
 
     public Long getPostId() { return postId; }
     public void setPostId(Long postId) { this.postId = postId; }
-
-    public String getUserId() { return userId; }
-    public void setUserId(String userId) { this.userId = userId; }
 
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
