@@ -16,6 +16,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.*;
+import com.example.demo.security.CustomAccessDeniedHandler;
+import com.example.demo.security.CustomAuthenticationEntryPoint;
 
 import java.util.List;
 
@@ -25,6 +27,8 @@ import java.util.List;
 public class SecurityConfig {
     private final AuthenticationConfiguration authenticationConfiguration;
     private final JwtProvider jwtProvider;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     @Bean
     public AuthenticationManager authenticationManager() throws Exception {
@@ -45,6 +49,12 @@ public class SecurityConfig {
                 .httpBasic(httpBasic -> httpBasic.disable())
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(customAuthenticationEntryPoint) // 401 처리
+                        .accessDeniedHandler(customAccessDeniedHandler)       // 403 처리
+                )
+
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
