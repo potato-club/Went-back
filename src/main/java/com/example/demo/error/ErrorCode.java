@@ -22,6 +22,8 @@ public enum ErrorCode {
     INVALID_TOKEN_TYPE(HttpStatus.UNAUTHORIZED, 4014, "Invalid Token Type"),
     INVALID_SOCIAL_TOKEN(HttpStatus.UNAUTHORIZED, 4015, "Invalid social login token"),
 
+    HANDLE_ACCESS_DENIED(HttpStatus.FORBIDDEN, 4030, "Access is denied."),
+
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, 4040, "User Not Found"),
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, 4041, "Category Not Found"),
 

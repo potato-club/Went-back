@@ -21,6 +21,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import com.example.demo.error.ErrorCode;
+import com.example.demo.error.ForbiddenException;
+import com.example.demo.error.NotFoundException;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -39,9 +42,9 @@ public class PostService {
     @Transactional
     public PostResponseDTO createPost(PostCreationDTO dto, CustomUserDetails userDetails, List<MultipartFile> files) {
         Category category = categoryRepository.findById(dto.getCategoryId())
-                .orElseThrow(() -> new NoSuchElementException("카테고리가 존재하지 않습니다."));
+                .orElseThrow(() -> new NotFoundException("Category not found.", ErrorCode.CATEGORY_NOT_FOUND));
         UserEntity user = userRepository.findById(userDetails.getUserId())
-                .orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
+                .orElseThrow(() -> new NotFoundException("User not found.", ErrorCode.USER_NOT_FOUND));
 
         Post post = Post.builder()
                 .title(dto.getTitle())
@@ -74,14 +77,14 @@ public class PostService {
     @Transactional
     public PostResponseDTO updatePost(Long postId, PostUpdateDTO dto, Long userId, List<MultipartFile> files) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new NoSuchElementException("게시글이 존재하지 않습니다."));
+                .orElseThrow(() -> new NotFoundException("Post not found.", ErrorCode.NOT_FOUND));
 
         if (!post.getUser().getUserId().equals(userId)) {
-            throw new SecurityException("본인의 게시글만 수정할 수 있습니다.");
+            throw new ForbiddenException("You can only modify your own posts.", ErrorCode.HANDLE_ACCESS_DENIED);
         }
 
         Category category = categoryRepository.findById(dto.getCategoryId())
-                .orElseThrow(() -> new NoSuchElementException("카테고리가 존재하지 않습니다."));
+                .orElseThrow(() -> new NotFoundException("Category not found.", ErrorCode.CATEGORY_NOT_FOUND));
 
         if (dto.getTitle() != null) post.setTitle(dto.getTitle());
         if (dto.getContent() != null) post.setContent(dto.getContent());
@@ -130,7 +133,7 @@ public class PostService {
     @Transactional
     public PostResponseDTO getPost(Long postId) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new NoSuchElementException("게시글이 존재하지 않습니다."));
+                .orElseThrow(() -> new NotFoundException("Post not found.", ErrorCode.NOT_FOUND));
         post.setViewCount(post.getViewCount() + 1);
         postRepository.save(post);
 
@@ -160,7 +163,7 @@ public class PostService {
     @Transactional(readOnly = true)
     public List<PostPreviewResponseDTO> getMyLikedPosts(Long userId) {
         UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
+                .orElseThrow(() -> new NotFoundException("User not found.", ErrorCode.USER_NOT_FOUND));
 
         Pageable myLikedPostsPageable = PageRequest.of(0, 4);
         List<Post> likedPosts = postRepository.findLikedPostWithLikesByUser(userId, myLikedPostsPageable);
@@ -173,10 +176,10 @@ public class PostService {
     @Transactional
     public void deletePost(Long postId, Long userId) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new NoSuchElementException("게시글이 존재하지 않습니다."));
+                .orElseThrow(() -> new NotFoundException("Post not found.", ErrorCode.NOT_FOUND));
 
         if (!post.getUser().getUserId().equals(userId)) {
-            throw new SecurityException("본인의 게시글만 삭제할 수 있습니다.");
+            throw new ForbiddenException("You can only delete your own posts.", ErrorCode.HANDLE_ACCESS_DENIED);
         }
 
         postRepository.delete(post);
